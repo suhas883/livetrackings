@@ -95,8 +95,8 @@
 
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
+            --primary: #20808d;
+            --primary-dark: #1a6874;
             --success: #10b981;
             --text: #1e293b;
             --text-light: #64748b;
@@ -222,7 +222,7 @@
     <header>
         <div class="container">
             <nav>
-                <a href="/" class="logo">
+                <a href="/" class="logo" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 8px;">
                     <span class="logo-icon">📦</span>
                     <span>LiveTrackings</span>
                 </a>
@@ -544,8 +544,11 @@
             document.getElementById('resultsContainer').innerHTML = html;
             document.getElementById('results').classList.add('active');
             setTimeout(() => {
-                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 150);
+                const resultsElement = document.getElementById('results');
+                const yOffset = -20;
+                const y = resultsElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }, 200);
         }
 
         function displayError(trackingNumber, errorMessage) {
@@ -560,8 +563,11 @@
             document.getElementById('resultsContainer').innerHTML = html;
             document.getElementById('results').classList.add('active');
             setTimeout(() => {
-                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 150);
+                const resultsElement = document.getElementById('results');
+                const yOffset = -20;
+                const y = resultsElement.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({top: y, behavior: 'smooth'});
+            }, 200);
         }
     </script>
 </body>
