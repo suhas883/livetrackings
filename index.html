@@ -486,6 +486,15 @@
                     <a href="https://bit.ly/yend" target="_blank" rel="noopener noreferrer sponsored" class="affiliate-btn">Claim $112 Bonus Now →</a>
                 </div>
 
+                                <div class="status-banner">
+                    <h2>✓ ${data.status || 'In Transit'}</h2>
+                    <div class="status-grid">
+                        <div class="status-item"><strong>Tracking #</strong><span>${trackingNumber}</span></div>
+                        <div class="status-item"><strong>Carrier</strong><span>${data.carrier || 'Unknown'}</span></div>
+                        <div class="status-item"><strong>Location</strong><span>${data.location || 'N/A'}</span></div>
+                        <div class="status-item"><strong>Delivery</strong><span>${data.estimatedDelivery || 'TBD'}</span></div>
+                    </div>
+
                 <div class="ai-insights">
                     <div class="insight-card">
                         <h4>AI Confidence</h4>
@@ -553,14 +562,6 @@
                         </div>
                     `).join('') : '<p>No tracking history available</p>'}
                 </div>
-                                <div class="status-banner">
-                    <h2>✓ ${data.status || 'In Transit'}</h2>
-                    <div class="status-grid">
-                        <div class="status-item"><strong>Tracking #</strong><span>${trackingNumber}</span></div>
-                        <div class="status-item"><strong>Carrier</strong><span>${data.carrier || 'Unknown'}</span></div>
-                        <div class="status-item"><strong>Location</strong><span>${data.location || 'N/A'}</span></div>
-                        <div class="status-item"><strong>Delivery</strong><span>${data.estimatedDelivery || 'TBD'}</span></div>
-                    </div>
                 </div>
 
 
