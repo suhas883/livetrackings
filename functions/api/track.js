@@ -25,11 +25,10 @@ export async function onRequestPost(context) {
     }
 
     // Try different models in order of preference for free tier
-    const models = [
-      'llama-3.1-sonar-huge-128k-online',
-      'llama-3.1-sonar-small-128k-online',
-      'llama-3.1-8b-instruct',
-      'sonar'
+    const 28
+      [
+              'sonar-pro',
+              'sonar',
     ];
 
     let trackingData = null;
