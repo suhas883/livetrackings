@@ -1,0 +1,20 @@
+# LiveTrackings Robots.txt
+User-agent: *
+Allow: /
+Allow: /blog/
+Allow: /blog/*
+
+# Sitemaps
+Sitemap: https://livetrackings.com/sitemap.xml
+
+# Block sensitive paths
+Disallow: /api/
+Disallow: /functions/
+Disallow: /admin/
+
+# Crawl-delay for aggressive bots
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
