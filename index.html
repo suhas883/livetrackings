@@ -542,15 +542,6 @@
                     </div>
                 </div>
 
-                <div class="status-banner">
-                    <h2>✓ ${data.status || 'In Transit'}</h2>
-                    <div class="status-grid">
-                        <div class="status-item"><strong>Tracking #</strong><span>${trackingNumber}</span></div>
-                        <div class="status-item"><strong>Carrier</strong><span>${data.carrier || 'Unknown'}</span></div>
-                        <div class="status-item"><strong>Location</strong><span>${data.location || 'N/A'}</span></div>
-                        <div class="status-item"><strong>Delivery</strong><span>${data.estimatedDelivery || 'TBD'}</span></div>
-                    </div>
-                </div>
 
                 <div class="timeline">
                     <h3>📦 Complete Tracking History</h3>
@@ -562,6 +553,16 @@
                         </div>
                     `).join('') : '<p>No tracking history available</p>'}
                 </div>
+                                <div class="status-banner">
+                    <h2>✓ ${data.status || 'In Transit'}</h2>
+                    <div class="status-grid">
+                        <div class="status-item"><strong>Tracking #</strong><span>${trackingNumber}</span></div>
+                        <div class="status-item"><strong>Carrier</strong><span>${data.carrier || 'Unknown'}</span></div>
+                        <div class="status-item"><strong>Location</strong><span>${data.location || 'N/A'}</span></div>
+                        <div class="status-item"><strong>Delivery</strong><span>${data.estimatedDelivery || 'TBD'}</span></div>
+                    </div>
+                </div>
+
 
                 <div class="affiliate-banner affiliate-banner-secondary">
                     <h3>🎁 Enter to Win $5,000 Cash Prize!</h3>
