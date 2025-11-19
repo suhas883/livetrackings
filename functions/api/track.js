@@ -25,7 +25,7 @@ export async function onRequestPost(context) {
     }
 
     // Try different models in order of preference for free tier
-    const 28
+    const models = [
       [
               'sonar-pro',
               'sonar',
