@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'llama-3.1-sonar-large-128k-online',
+        model: 'llama-3.1-sonar-small-128k-online',  // ✅ CHANGED: Using small model instead of large
         messages: [{
           role: 'system',
           content: 'You are a package tracking assistant. Provide accurate, real-time tracking information by searching the web. Return ONLY valid JSON format without any markdown formatting or code blocks.'
