@@ -19,6 +19,7 @@ export async function onRequestPost(context) {
 
     // Get API key from environment variables
     const PERPLEXITY_API_KEY = context.env.PERPLEXITY_API_KEY;
+        const TRACKINGMORE_API_KEY = context.env.TRACKINGMORE_API_KEY;
 
     if (!PERPLEXITY_API_KEY) {
       throw new Error('Perplexity API key not configured');
@@ -122,6 +123,47 @@ If tracking number not found, return:
       }
     }
 
+
+          // If Perplexity failed, try TrackingMore API as fallback
+    if (!trackingData && TRACKINGMORE_API_KEY) {
+      try {
+        const trackingMoreResponse = await fetch(`https://api.trackingmore.com/v4/trackings/realtime`, {
+          method: 'POST',
+          headers: {
+            'Tracking-Api-Key': TRACKINGMORE_API_KEY,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            tracking_number: trackingNumber
+          })
+        });
+        
+        if (trackingMoreResponse.ok) {
+          const tmData = await trackingMoreResponse.json();
+          if (tmData && tmData.data) {
+            // Convert TrackingMore format to our format
+            trackingData = {
+              carrier: tmData.data.provider_name || 'Unknown',
+              status: tmData.data.status || 'Unknown',
+              location: tmData.data.latest_event?.location || 'Unknown',
+              estimatedDelivery: tmData.data.estimated_delivery_date || 'Unknown',
+              confidence: 95,
+              transitDays: 0,
+              distance: 'Unknown',
+              weather: { condition: 'Unknown', icon: '☁️', impact: 'Unknown', delay: 'Unknown' },
+              checkpoints: (tmData.data.events || []).map(event => ({
+                date: event.time,
+                status: event.description,
+                location: event.location,
+                description: event.description
+              }))
+            };
+          }
+        }
+      } catch (tmError) {
+        console.error('TrackingMore API error:', tmError);
+      }
+    }
     // If no model worked, throw the last error
     if (!trackingData) {
       throw new Error(lastError || 'All models failed');
