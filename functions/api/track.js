@@ -24,21 +24,34 @@ export async function onRequestPost(context) {
       throw new Error('Perplexity API key not configured');
     }
 
-    // Call Perplexity API to get real tracking info
-    const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-sonar-small-128k-online',  // ✅ CHANGED: Using small model instead of large
-        messages: [{
-          role: 'system',
-          content: 'You are a package tracking assistant. Provide accurate, real-time tracking information by searching the web. Return ONLY valid JSON format without any markdown formatting or code blocks.'
-        }, {
-          role: 'user',
-          content: `Track this package: ${trackingNumber}
+    // Try different models in order of preference for free tier
+    const models = [
+      'llama-3.1-sonar-huge-128k-online',
+      'llama-3.1-sonar-small-128k-online',
+      'llama-3.1-8b-instruct',
+      'sonar'
+    ];
+
+    let trackingData = null;
+    let lastError = null;
+
+    // Try each model until one works
+    for (const model of models) {
+      try {
+        const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${PERPLEXITY_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{
+              role: 'system',
+              content: 'You are a package tracking assistant. Provide accurate, real-time tracking information by searching the web. Return ONLY valid JSON format without any markdown formatting or code blocks.'
+            }, {
+              role: 'user',
+              content: `Track this package: ${trackingNumber}
 
 Search the web for real-time tracking information and return ONLY valid JSON (no markdown, no code blocks, just raw JSON):
 
@@ -75,58 +88,44 @@ If tracking number not found, return:
   "confidence": 0,
   "error": "Tracking number not found or invalid"
 }`
-        }],
-        temperature: 0.2,
-        max_tokens: 2000,
-        top_p: 0.9
-      })
-    });
+            }],
+            temperature: 0.2,
+            max_tokens: 2000,
+            top_p: 0.9
+          })
+        });
 
-    if (!perplexityResponse.ok) {
-      const errorText = await perplexityResponse.text();
-      throw new Error(`Perplexity API error: ${perplexityResponse.status} - ${errorText}`);
+        if (perplexityResponse.ok) {
+          const perplexityData = await perplexityResponse.json();
+          const aiResponse = perplexityData.choices[0].message.content;
+
+          // Parse the AI response
+          let cleanResponse = aiResponse.trim();
+          cleanResponse = cleanResponse.replace(/^``````\s*$/, '');
+          
+          const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            trackingData = JSON.parse(jsonMatch[0]);
+          } else {
+            trackingData = JSON.parse(cleanResponse);
+          }
+          
+          // Success! Break out of loop
+          break;
+        } else {
+          const errorText = await perplexityResponse.text();
+          lastError = `Model ${model} failed: ${errorText}`;
+          continue; // Try next model
+        }
+      } catch (modelError) {
+        lastError = `Model ${model} error: ${modelError.message}`;
+        continue; // Try next model
+      }
     }
 
-    const perplexityData = await perplexityResponse.json();
-    const aiResponse = perplexityData.choices[0].message.content;
-
-    // Parse the AI response - handle various formats
-    let trackingData;
-    try {
-      // Remove markdown code blocks if present
-      let cleanResponse = aiResponse.trim();
-      
-      // Remove `````` markers
-      cleanResponse = cleanResponse.replace(/^``````\s*$/, '');
-      
-      // Extract JSON object
-      const jsonMatch = cleanResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        trackingData = JSON.parse(jsonMatch[0]);
-      } else {
-        trackingData = JSON.parse(cleanResponse);
-      }
-    } catch (parseError) {
-      console.error('JSON Parse Error:', parseError);
-      console.error('AI Response:', aiResponse);
-      
-      // Fallback: Create basic structure from text
-      trackingData = {
-        carrier: extractField(aiResponse, 'carrier') || 'Unknown',
-        status: extractField(aiResponse, 'status') || 'Searching...',
-        location: extractField(aiResponse, 'location') || 'Unknown',
-        estimatedDelivery: new Date(Date.now() + 3*24*60*60*1000).toISOString().slice(0, 16).replace('T', ' '),
-        confidence: 75,
-        transitDays: 3,
-        distance: 'Unknown',
-        weather: {
-          condition: 'Clear',
-          icon: '☀️',
-          impact: 'Low',
-          delay: 'No delays expected'
-        },
-        checkpoints: []
-      };
+    // If no model worked, throw the last error
+    if (!trackingData) {
+      throw new Error(lastError || 'All models failed');
     }
 
     // Ensure all required fields exist with defaults
@@ -185,21 +184,6 @@ If tracking number not found, return:
       }
     });
   }
-}
-
-// Helper function to extract field from text response
-function extractField(text, field) {
-  const patterns = {
-    carrier: /carrier["\s:]+([^",\n]+)/i,
-    status: /status["\s:]+([^",\n]+)/i,
-    location: /location["\s:]+([^",\n]+)/i
-  };
-  
-  const pattern = patterns[field];
-  if (!pattern) return null;
-  
-  const match = text.match(pattern);
-  return match ? match[1].trim().replace(/['"]/g, '') : null;
 }
 
 // Handle OPTIONS for CORS preflight
