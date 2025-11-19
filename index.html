@@ -6,6 +6,7 @@
 
     <!-- Primary SEO Meta Tags - Global Focus -->
     <title>Universe's First AI Package Tracking | Track 1000+ Couriers Worldwide Free</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📦</text></svg>">
     <meta name="title" content="Universe's First AI Package Tracking | Track 1000+ Couriers Worldwide Free">
     <meta name="description" content="Track any package worldwide with universe's first AI-powered courier tracking. DHL, UPS, FedEx, USPS, Blue Dart, DTDC, Royal Mail & 1000+ couriers. Real-time, free, no login.">
     <meta name="keywords" content="global courier tracking, worldwide package tracking, AI parcel tracking, track package online free, DHL tracking, UPS tracking, FedEx tracking, international shipment tracker, track my package, universal parcel tracking, where is my package, Blue Dart, DTDC, Delhivery, Aramex, Royal Mail, Canada Post, Australia Post, USPS, global shipment tracking, 17track alternative, AfterShip alternative">
@@ -221,10 +222,10 @@
     <header>
         <div class="container">
             <nav>
-                <div class="logo">
-                    <span class="logo-icon">🌌</span>
+                <a href="/" class="logo">
+                    <span class="logo-icon">📦</span>
                     <span>LiveTrackings</span>
-                </div>
+                </a>
                 <ul class="nav-links">
                     <li><a href="/" class="nav-link">Home</a></li>
 
@@ -542,7 +543,9 @@
 
             document.getElementById('resultsContainer').innerHTML = html;
             document.getElementById('results').classList.add('active');
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
         }
 
         function displayError(trackingNumber, errorMessage) {
@@ -556,7 +559,9 @@
             `;
             document.getElementById('resultsContainer').innerHTML = html;
             document.getElementById('results').classList.add('active');
-            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 150);
         }
     </script>
 </body>
