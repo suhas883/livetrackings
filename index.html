@@ -129,7 +129,7 @@
         .trust-badge { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.15); padding: 8px 16px; border-radius: 8px; font-size: 14px; }
 
         .tracking-form { max-width: 700px; margin: 0 auto; display: flex; gap: 10px; position: relative; z-index: 1; }
-        .tracking-input { flex: 1; padding: 24px 28px; font-size: 20px; border: none; border-radius: 12px; outline: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+        .tracking-input { flex: 1; padding: 18px 22px; font-size: 16px; border: none; border-radius: 12px; outline: none; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
         .track-btn { padding: 18px 35px; background: var(--primary); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3); }
         .track-btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
         .track-btn:disabled { background: #94a3b8; cursor: not-allowed; }
@@ -298,10 +298,11 @@
             </div>
 
             <form class="tracking-form" id="trackingForm">
-                <a href="https://smrturl.co/f4074be" target="_blank" rel="noopener noreferrer sponsored" style="display: inline-block; background: white; color: #f5576c; padding: 12px 32px; border-radius: 50px; font-size: 18px; font-weight: 800; text-decoration: none; margin-top: 12px;">Enter FREE →</a>Track & Win                    type="text" 
+                <input 
+                    type="text" 
                     class="tracking-input" 
                     id="trackingNumber" 
-                    placeholder="e.g., 794655398723 (FedEx), 1Z999AA10123456784 (UPS) - Enter only number" 
+                    placeholder="Enter any tracking/AWB/parcel number" 
                     required 
                     aria-label="Enter package tracking number"
                 />
