@@ -491,6 +491,13 @@
         });
 
         function displayResults(trackingNumber, data) {
+                // Smooth scroll to results section
+    setTimeout(() => {
+        const resultsSection = document.getElementById('results');
+        if (resultsSection) {
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }, 100);
             const deliveryDate = new Date(data.estimatedDelivery || Date.now() + 86400000);
             const now = new Date();
             const daysUntil = Math.ceil((deliveryDate - now) / (1000 * 60 * 60 * 24));
