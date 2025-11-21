@@ -1,20 +1,33 @@
-# LiveTrackings Robots.txt
+# LiveTrackings Robots.txt - Google-Optimized for Reindexing
+
 User-agent: *
 Allow: /
 Allow: /blog/
 Allow: /blog/*
+Allow: /dhl-tracking
+Allow: /fedex-tracking
+Allow: /ups-tracking
+Allow: /usps-tracking
 
-# Sitemaps
-Sitemap: https://livetrackings.com/sitemap.xml
-
-# Block sensitive paths
+# Disallow sensitive paths
+Disallow: /admin/
 Disallow: /api/
 Disallow: /functions/
-Disallow: /admin/
+Disallow: /private/
 
-# Crawl-delay for aggressive bots
+# Crawl-delay and request rate
+Crawl-delay: 1
+Request-rate: 30/1m
+
+# XML Sitemap for indexing
+Sitemap: https://livetrackings.com/sitemap.xml
+
+# Block bad bots
 User-agent: AhrefsBot
-Crawl-delay: 10
+Disallow: /
 
 User-agent: SemrushBot
-Crawl-delay: 10
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
