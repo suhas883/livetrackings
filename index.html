@@ -1261,7 +1261,12 @@ window.sendChatMessage = sendChatMessage;
 window.subscribeEmail = subscribeEmail;
 window.subscribeSMS = subscribeSMS;
 
-</script></body>
+    // INTEGRATION: Call new display function when old one is triggered
+const displayResultsOld = typeof displayResults !== 'undefined' ? displayResults : null;
+window.displayResults = function(trackingNum, data) {
+  displayDetailedTracking(data);
+};
 
-</html>
-
+// Hooktraval functions on window for modal
+window.displayDetailedTracking = displayDetailedTracking;
+window.closeTrackingModal = closeTrackingModal;
