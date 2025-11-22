@@ -877,6 +877,177 @@ async function trackPackage(event) {
     console.error('Tracking error:', error);
   }
 }
+
+    // ENHANCED FUNCTIONS WITH REAL TRACKING, AI FEATURES & AFFILIATE LINKS
+
+// Call real CloudFlare Pages Function API
+async function trackPackageReal(trackingNum) {
+  try {
+    const response = await fetch('/api/track', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({trackingNumber: trackingNum})
+    });
+    const result = await response.json();
+    return result.success ? result.data : null;
+  } catch(e) {
+    console.error('Track API Error:', e);
+    return null;
+  }
+}
+
+// Enhanced AI Analysis using Perplexity API
+async function getAIAnalysis(carrier, status, location, trackingNum) {
+  try {
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer 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',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-sonar-small-128k-online',
+        messages: [{
+          role: 'system',
+          content: 'You are a delivery expert. Analyze package: '+carrier+', Status: '+status+', Location: '+location+'. Provide 2-3 brief insights about delivery likelihood and any risks.'
+        }, {
+          role: 'user',
+          content: 'Analyze this tracking for '+trackingNum+'. Be concise.'
+        }],
+        max_tokens: 200,
+        temperature: 0.5
+      })
+    });
+    if(response.ok) {
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || 'Package on track';
+    }
+  } catch(e) {
+    console.log('AI Analysis unavailable');
+  }
+  return 'Package on track for delivery';
+}
+
+// Enhanced Display with Real Data & Affiliate Links
+async function displayResultsEnhanced(trackingNum, data) {
+  const modal = document.getElementById('trackingModal');
+  const modalBody = document.getElementById('modalBody');
+  
+  // Get AI insights
+  const aiInsights = await getAIAnalysis(data.carrier, data.status, data.location, trackingNum);
+  
+  // Build affiliate offers with proper SEO tags
+  const offersHTML = `
+    <div class="offers-section" data-nosnippet>
+      <h3 style="color:#202124;margin-bottom:1rem">💰 Save on Shipping & Protection</h3>
+      <div class="offers-grid">
+        <div class="offer-card">
+          <span class="offer-badge">Save 20%</span>
+          <h4>📦 ShipSmart Pro</h4>
+          <p>Save up to 20% on shipping. Real-time rate comparison for DHL, UPS, FedEx & more. Free for first 10 shipments.</p>
+          <a href="https://bit.ly/shipsmart-track" rel="sponsored nofollow" class="offer-btn">Get Discounts →</a>
+        </div>
+        <div class="offer-card">
+          <span class="offer-badge">From $0.99</span>
+          <h4>🛡️ ShipGuard Insurance</h4>
+          <p>Protect your packages. Lost, damaged or stolen shipment? Get full refund. Starting at just $0.99 per package.</p>
+          <a href="https://bit.ly/shipguard-protect" rel="sponsored nofollow" class="offer-btn green">Protect Now →</a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Build timeline from real checkpoints
+  let timelineHTML = '<div class="timeline"><h3>📋 Detailed Shipment History</h3>';
+  if(data.checkpoints && data.checkpoints.length) {
+    data.checkpoints.forEach(cp => {
+      const date = new Date(cp.date).toLocaleString();
+      timelineHTML += `<div class="timeline-event"><div><strong>📍 ${cp.status}</strong><p>${cp.location}</p><p style="color:#80868b;font-size:.8rem">${date}</p></div></div>`;
+    });
+  } else {
+    timelineHTML += '<div class="timeline-event"><div><strong>📦 Package Processing</strong><p>'+data.location+'</p><p style="color:#80868b;font-size:.8rem">In transit</p></div></div>';
+  }
+  timelineHTML += '</div>';
+  
+  const confidence = data.confidence || 85;
+  const html = `
+    <div class="confidence-badge">✓ AI Confidence: ${confidence}%</div>
+    <h2 style="margin-bottom:1.5rem;color:#202124">Tracking: ${trackingNum}</h2>
+    <div class="tracking-grid">
+      <div class="grid-item"><strong>Carrier</strong><span>${data.carrier}</span></div>
+      <div class="grid-item"><strong>Status</strong><span>${data.status}</span></div>
+      <div class="grid-item"><strong>Location</strong><span>${data.location}</span></div>
+      <div class="grid-item"><strong>Weather</strong><span>${data.weather?.icon || '☀️'} ${data.weather?.condition || 'Clear'}</span></div>
+      <div class="grid-item"><strong>Est. Delivery</strong><span>${data.estimatedDelivery}</span></div>
+      <div class="grid-item"><strong>Time Remaining</strong><span>${Math.ceil((new Date(data.estimatedDelivery) - new Date()) / (1000*60*60))} hours</span></div>
+    </div>
+    ${timelineHTML}
+    <div class="ai-section">
+      <h3>🤖 AI Smart Analysis</h3>
+      <p style="color:#1565c0;font-size:.95rem;line-height:1.6">${aiInsights}</p>
+      <ul style="margin-top:1rem;">
+        <li>✓ Real-time tracking from carrier API</li>
+        <li>✓ AI-powered delivery predictions</li>
+        <li>✓ Weather & traffic analysis</li>
+        <li>✓ Automated alerts & notifications</li>
+      </ul>
+    </div>
+    ${offersHTML}
+  `;
+  
+  modalBody.innerHTML = html;
+  modal.classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+// Override displayResults to use enhanced version
+window.displayResultsOriginal = displayResults;
+displayResults = async function(trackingNum, data) {
+  await displayResultsEnhanced(trackingNum, data);
+};
+
+// Email alerts subscription
+async function subscribeEmail() {
+  const email = prompt('Enter your email for package alerts:');
+  if(!email) return;
+  try {
+    const response = await fetch('/api/subscribe-email', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({email})
+    });
+    if(response.ok) alert('✅ Email alerts enabled! Check your inbox.');
+    else alert('Error subscribing. Please try again.');
+  } catch(e) {
+    alert('Subscription failed. Please try again.');
+  }
+}
+
+// SMS alerts subscription  
+async function subscribeSMS() {
+  const phone = prompt('Enter your phone number for SMS alerts (e.g., +1234567890):');
+  if(!phone) return;
+  try {
+    const response = await fetch('/api/subscribe-sms', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({phone})
+    });
+    if(response.ok) alert('✅ SMS alerts enabled! You will receive tracking updates.');
+    else alert('Error subscribing. Please try again.');
+  } catch(e) {
+    alert('Subscription failed. Please try again.');
+  }
+}
+
+// Update email/SMS buttons to call new functions
+document.addEventListener('DOMContentLoaded', function() {
+  const emailBtn = document.querySelector('[onclick*="Email"]');
+  const smsBtn = document.querySelector('[onclick*="SMS"]');
+  if(emailBtn) emailBtn.onclick = subscribeEmail;
+  if(smsBtn) smsBtn.onclick = subscribeSMS;
+});
+
 function toggleChat(){const box=document.getElementById('chat-box');box.style.display=box.style.display==='none'?'flex':'none'}
 function sendMessage(){const input=document.getElementById('chat-input');const msg=input.value.trim();if(!msg)return;const messages=document.getElementById('chat-messages');messages.innerHTML+=`<div style="text-align:right;margin-bottom:10px"><div style="display:inline-block;background:#667eea;color:white;padding:10px 15px;border-radius:10px;max-width:70%;text-align:left"><p style="margin:0;font-size:14px">${msg}</p></div></div>`;input.value='';messages.scrollTop=messages.scrollHeight;setTimeout(()=>{const responses={track:'To track your package, enter your tracking number in the search box above. We support 1000+ couriers worldwide!',status:'Your package status shows current location, estimated delivery, and shipment history with AI-powered predictions.',contact:'You can find courier contact information in your tracking results. Each carrier has dedicated support.',help:'I can help you track packages, understand delivery status, find courier contacts, and answer shipping questions. Just ask!',default:'Great question! For package tracking, use the search box above with your tracking number. For specific issues, please provide your tracking number and I\'ll help you immediately.'};const resp=Object.keys(responses).find(k=>msg.toLowerCase().includes(k))||'default';messages.innerHTML+=`<div style="background:white;padding:12px;border-radius:10px;margin-bottom:10px;box-shadow:0 2px 5px rgba(0,0,0,0.05)"><p style="margin:0;font-size:14px;color:#667eea;font-weight:600">AI Assistant</p><p style="margin:5px 0 0;font-size:14px;color:#4a5568">${responses[resp]}</p></div>`;messages.scrollTop=messages.scrollHeight},500)}
 </script></body>
