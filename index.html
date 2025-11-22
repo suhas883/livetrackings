@@ -735,14 +735,16 @@
         
 <h1>Track Any Package with Advanced AI Technology</h1>        <div class="search-box">
                 <p>Real-time AI predictions for 1000+ couriers | Most accurate delivery tracking worldwide</p>
-                <form id="trackingForm"> onsubmit="trackPackage(event); return false;"
+                <form id="trackingForm" class="search-form" onsubmit="trackPackage(event); return false;">
                     <input type="text" id="trackingInput" placeholder="Enter tracking number..." required>
                                         <button type="submit" id="trackBtn">Track Package</button>
                 </form>
-                    href="#"
-                    onclick="document.getElementById('trackingInput').value='9400111899223835467329';return false;">USPS</a>|<a
-                    href="#"
-                    onclick="document.getElementById('trackingInput').value='794692396465';return false;">FedEx</a>
+                    <div class="example-links">
+                        <span>Try:</span>
+                        <a href="#" onclick="document.getElementById('trackingInput').value='1Z999AA10123456784';return false;">UPS</a> | 
+                        <a href="#" onclick="document.getElementById('trackingInput').value='9400111899223835467329';return false;">USPS</a> | 
+                        <a href="#" onclick="document.getElementById('trackingInput').value='794692396465';return false;">FedEx</a>
+                    </div>
             </div>
             <div class="notify-options">
                 <div class="notify-option"><svg fill="currentColor" viewBox="0 0 20 20" onclick="alert('📧 Sign up for email alerts!\n\nEnter your email to get real-time package tracking notifications delivered to your inbox.')" style="cursor:pointer" onclick="alert('📱 Sign up for SMS alerts!\n\nEnter your phone number to get instant text message updates when your package moves.')" style="cursor:pointer">
