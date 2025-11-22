@@ -783,6 +783,42 @@
             <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
+    
+    <!-- Email Alerts Modal -->
+    <div class="modal-overlay" id="emailModal" onclick="if(event.target===this)closeEmailModal()" style="display:none;">
+      <div class="modal-content" style="max-width:400px;">
+        <button class="close-modal" onclick="closeEmailModal()" aria-label="Close">×</button>
+        <div class="modal-header">
+          <h2>📧 Email Alerts</h2>
+        </div>
+        <div class="modal-body">
+          <p style="margin-top:0;">Stay updated with email notifications for your packages.</p>
+          <form id="emailForm" style="display:flex;flex-direction:column;gap:12px;">
+            <input type="email" id="emailInput" placeholder="Enter your email" required style="padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            <button type="submit" style="padding:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Subscribe to Email Alerts</button>
+          </form>
+          <p id="emailMessage" style="margin-top:10px;font-size:14px;text-align:center;"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMS Alerts Modal -->
+    <div class="modal-overlay" id="smsModal" onclick="if(event.target===this)closeSMSModal()" style="display:none;">
+      <div class="modal-content" style="max-width:400px;">
+        <button class="close-modal" onclick="closeSMSModal()" aria-label="Close">×</button>
+        <div class="modal-header">
+          <h2>📱 SMS Alerts</h2>
+        </div>
+        <div class="modal-body">
+          <p style="margin-top:0;">Receive SMS notifications for real-time delivery updates.</p>
+          <form id="smsForm" style="display:flex;flex-direction:column;gap:12px;">
+            <input type="tel" id="phoneInput" placeholder="+1 (555) 000-0000" required style="padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+            <button type="submit" style="padding:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">Subscribe to SMS Alerts</button>
+          </form>
+          <p id="smsMessage" style="margin-top:10px;font-size:14px;text-align:center;"></p>
+        </div>
+      </div>
+    </div>
     <footer>
         <p><strong>Disclosure:</strong> LiveTrackings may earn commissions from featured offers. All tracking services
             remain 100% free.</p>
