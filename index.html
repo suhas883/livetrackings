@@ -206,6 +206,38 @@
             gap: .8rem;
             margin-bottom: 1rem
         }
+        
+        /* Enhanced search form styling */
+        #trackingInput {
+            font-size: 18px !important;
+            padding: 16px 20px !important;
+            height: auto !important;
+            min-height: 50px !important;
+        }
+        
+        #trackBtn {
+            padding: 16px 40px !important;
+            font-size: 18px !important;
+            height: auto !important;
+            min-height: 50px !important;
+            font-weight: 700 !important;
+        }
+        
+        /* Modal enhancements */
+        .modal-overlay {
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        /* ESC key support via CSS */
+        .modal-overlay[style*="display:none"] {
+            visibility: hidden;
+            pointer-events: none;
+        }
 
         #trackingInput {
             flex: 1;
@@ -720,6 +752,68 @@
             }
         }
     </style>
+    <script>
+    // Modal control functions
+    function openEmailModal() {
+        document.getElementById('emailModal').style.display = 'flex';
+        document.getElementById('emailInput').focus();
+    }
+    
+    function closeEmailModal() {
+        document.getElementById('emailModal').style.display = 'none';
+    }
+    
+    function openSMSModal() {
+        document.getElementById('smsModal').style.display = 'flex';
+        document.getElementById('phoneInput').focus();
+    }
+    
+    function closeSMSModal() {
+        document.getElementById('smsModal').style.display = 'none';
+    }
+    
+    function closeAllModals() {
+        closeEmailModal();
+        closeSMSModal();
+        closeTrackingModal();
+    }
+    
+    // ESC key support - Close modals on ESC press
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAllModals();
+        }
+    });
+    
+    // Email form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const emailForm = document.getElementById('emailForm');
+        if (emailForm) {
+            emailForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = document.getElementById('emailInput').value;
+                if (email) {
+                    document.getElementById('emailMessage').textContent = '✓ Email subscription confirmed!';
+                    document.getElementById('emailMessage').style.color = 'green';
+                    setTimeout(() => closeEmailModal(), 1500);
+                }
+            });
+        }
+        
+        const smsForm = document.getElementById('smsForm');
+        if (smsForm) {
+            smsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const phone = document.getElementById('phoneInput').value;
+                if (phone) {
+                    document.getElementById('smsMessage').textContent = '✓ SMS subscription confirmed!';
+                    document.getElementById('smsMessage').style.color = 'green';
+                    setTimeout(() => closeSMSModal(), 1500);
+                }
+            });
+        }
+    });
+</script>
 </head>
 
 <body>
