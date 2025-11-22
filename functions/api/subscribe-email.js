@@ -1,65 +1,170 @@
-// Email subscription API endpoint for LiveTrackings
-// Handles email alert signups
+// Production Email Subscription API - Cloudflare Pages Function
+// Integrates with SendGrid or Mailgun for email notifications
+// Stores subscriptions in Cloudflare KV for persistence
 
-export async function onRequest(context) {
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_EMAIL_LENGTH = 254;
+
+export async function onRequestPost(context) {
   try {
-    // Only allow POST requests
-    if (context.request.method !== 'POST') {
-      return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-        status: 405,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
     const { email, trackingNumber } = await context.request.json();
 
-    // Validate email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      return new Response(JSON.stringify({ error: 'Invalid email address' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // Validation: Email
+    if (!email || typeof email !== 'string') {
+      return errorResponse('Email is required', 400);
     }
 
-    // Validate tracking number
-    if (!trackingNumber || trackingNumber.trim().length === 0) {
-      return new Response(JSON.stringify({ error: 'Invalid tracking number' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!EMAIL_REGEX.test(trimmedEmail) || trimmedEmail.length > MAX_EMAIL_LENGTH) {
+      return errorResponse('Invalid email address format', 400);
     }
 
-    // Store subscription in KV (you'll need to bind KV namespace in wrangler.toml)
-    // For now, we'll just return success
-    // In production, you'd store this in Cloudflare KV or a database
-    // Example: await context.env.EMAIL_SUBSCRIPTIONS.put(`${trackingNumber}:${email}`, JSON.stringify({
-    //   email,
-    //   trackingNumber,
-    //   subscribedAt: new Date().toISOString()
-    // }));
+    // Validation: Tracking Number
+    if (!trackingNumber || typeof trackingNumber !== 'string' || trackingNumber.trim().length === 0) {
+      return errorResponse('Valid tracking number is required', 400);
+    }
 
-    console.log(`Email subscription: ${email} for tracking ${trackingNumber}`);
+    const cleanTracking = trackingNumber.trim().toUpperCase();
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: 'Successfully subscribed to email alerts'
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+    // Get environment variables
+    const KV_NAMESPACE = context.env.EMAIL_SUBSCRIPTIONS;
+    const SENDGRID_API_KEY = context.env.SENDGRID_API_KEY;
+    const SENDGRID_FROM_EMAIL = context.env.SENDGRID_FROM_EMAIL || 'alerts@livetrackings.com';
+
+    if (!KV_NAMESPACE) {
+      console.error('EMAIL_SUBSCRIPTIONS KV namespace not configured');
+      return errorResponse('Service misconfigured', 500);
+    }
+
+    // Create subscription key
+    const subscriptionKey = `${cleanTracking}:${trimmedEmail}`;
+    const subscriptionData = JSON.stringify({
+      email: trimmedEmail,
+      trackingNumber: cleanTracking,
+      subscribedAt: new Date().toISOString(),
+      active: true
+    });
+
+    // Store in KV (30-day TTL)
+    await KV_NAMESPACE.put(subscriptionKey, subscriptionData, {
+      expirationTtl: 30 * 24 * 60 * 60
+    });
+
+    // Send confirmation email if SendGrid configured
+    if (SENDGRID_API_KEY) {
+      try {
+        await sendConfirmationEmail(
+          trimmedEmail,
+          cleanTracking,
+          SENDGRID_API_KEY,
+          SENDGRID_FROM_EMAIL
+        );
+      } catch (emailError) {
+        console.error('SendGrid email failed:', emailError);
+        // Don't fail subscription if email sending fails
       }
+    }
+
+    return successResponse({
+      success: true,
+      message: 'Email subscription confirmed',
+      email: trimmedEmail,
+      trackingNumber: cleanTracking,
+      expiresIn: '30 days'
     });
 
   } catch (error) {
     console.error('Email subscription error:', error);
-    return new Response(JSON.stringify({
-      error: 'Failed to subscribe',
-      details: error.message
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    return errorResponse(
+      'Failed to process subscription',
+      500,
+      error.message
+    );
   }
+}
+
+// Send confirmation email via SendGrid
+async function sendConfirmationEmail(email, trackingNumber, apiKey, fromEmail) {
+  const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      personalizations: [{
+        to: [{ email }],
+        subject: `🚚 Tracking Alerts Enabled for #${trackingNumber}`
+      }],
+      from: { email: fromEmail, name: 'LiveTrackings' },
+      content: [{
+        type: 'text/html',
+        value: `
+          <h2>Tracking Alert Confirmed! 🎉</h2>
+          <p>You'll now receive real-time updates for:</p>
+          <p><strong>Tracking #: ${trackingNumber}</strong></p>
+          <p>We'll notify you when:</p>
+          <ul>
+            <li>📦 Your package is picked up</li>
+            <li>✈️ It leaves the origin facility</li>
+            <li>🏙️ It arrives at a distribution center</li>
+            <li>🚚 It's out for delivery</li>
+            <li>✅ It's successfully delivered</li>
+          </ul>
+          <p>Best regards,<br/>LiveTrackings Team</p>
+        `
+      }],
+      trackingSettings: {
+        clickTracking: { enable: true },
+        openTracking: { enable: true }
+      }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`SendGrid API failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// OPTIONS request handler (CORS preflight)
+export async function onRequestOptions() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    }
+  });
+}
+
+// Helper: Success response
+function successResponse(data) {
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+      'Cache-Control': 'no-cache'
+    }
+  });
+}
+
+// Helper: Error response
+function errorResponse(message, status = 500, details = null) {
+  const body = {
+    success: false,
+    error: message
+  };
+  if (details) body.details = details;
+
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
 }
