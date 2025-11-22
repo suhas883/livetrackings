@@ -786,6 +786,95 @@
         <p>© 2025 LiveTrackings.com - Free Package Tracking Worldwide</p>
     </footer>
     <script>const PERPLEXITY_API = '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'; const ABACUS_API = 'https://api.ship24.com/public/v1/tracking'; async function trackPackage(e) { e.preventDefault(); const input = document.getElementById('trackingInput'); const btn = document.getElementById('trackBtn'); const trackingNum = input.value.trim(); if (!trackingNum) { alert('Please enter a tracking number'); return } btn.disabled = true; btn.textContent = 'Tracking...'; try { let data = await callPerplexityAPI(trackingNum); if (!data || data.error) { console.log('Perplexity failed, trying Abacus backup...'); data = await callAbacusAPI(trackingNum) } displayResults(trackingNum, data) } catch (err) { console.error('Tracking error:', err); displayError() } finally { btn.disabled = false; btn.textContent = 'Track Package' } } async function callPerplexityAPI(trackingNum) { try { const response = await fetch('https://api.perplexity.ai/chat/completions', { method: 'POST', headers: { 'Authorization': `Bearer ${PERPLEXITY_API}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: 'llama-3.1-sonar-small-128k-online', messages: [{ role: 'system', content: 'You are a package tracking assistant. Analyze the tracking number and provide: carrier name, current status, location, estimated delivery date, and a brief shipment history. Return data in JSON format.' }, { role: 'user', content: `Track this package: ${trackingNum}. Provide detailed tracking information.` }], max_tokens: 500 }) }); if (!response.ok) throw new Error('API failed'); const result = await response.json(); return parsePerplexityResponse(result) } catch (err) { console.error('Perplexity API error:', err); return null } } async function callAbacusAPI(trackingNum) { try { const response = await fetch(ABACUS_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ trackingNumber: trackingNum }) }); if (!response.ok) throw new Error('Abacus API failed'); return await response.json() } catch (err) { console.error('Abacus API error:', err); return generateFallbackData(trackingNum) } } function parsePerplexityResponse(result) { if (!result.choices || !result.choices[0]) return null; const content = result.choices[0].message.content; try { return JSON.parse(content) } catch (e) { return generateFallbackData('AI') } } function generateFallbackData(trackingNum) { const carriers = ['DHL Express', 'UPS Worldwide', 'FedEx International', 'USPS Priority', 'Blue Dart', 'Amazon Logistics']; const statuses = ['In Transit', 'Out for Delivery', 'At Sorting Facility', 'Customs Clearance', 'On Vehicle for Delivery']; const cities = ['New York, NY', 'Los Angeles, CA', 'Chicago, IL', 'Houston, TX', 'Phoenix, AZ', 'Philadelphia, PA', 'San Antonio, TX', 'San Diego, CA', 'Dallas, TX', 'San Jose, CA']; const weather = ['☀️ Sunny, 72°F', '⛅ Partly Cloudy, 68°F', '🌤️ Clear, 75°F', '🌥️ Mostly Cloudy, 65°F']; return { carrier: carriers[Math.floor(Math.random() * carriers.length)], status: statuses[Math.floor(Math.random() * statuses.length)], location: cities[Math.floor(Math.random() * cities.length)], weather: weather[Math.floor(Math.random() * weather.length)], deliveryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }), hoursLeft: Math.floor(Math.random() * 48) + 12, confidence: Math.floor(Math.random() * 10) + 86 } } function displayResults(trackingNum, data) { const modal = document.getElementById('trackingModal'); const modalBody = document.getElementById('modalBody'); const confidence = data.confidence || 90; modalBody.innerHTML = `<div class="confidence-badge">✓ AI Confidence: ${confidence}%</div><h2 style="margin-bottom:1.5rem;color:#202124">Tracking: ${trackingNum}</h2><div class="tracking-grid"><div class="grid-item"><strong>Carrier</strong><span>${data.carrier || 'Detecting...'}</span></div><div class="grid-item"><strong>Status</strong><span>${data.status || 'In Transit'}</span></div><div class="grid-item"><strong>Location</strong><span>${data.location || 'Processing'}</span></div><div class="grid-item"><strong>Weather</strong><span>${data.weather || '☀️ Clear'}</span></div><div class="grid-item"><strong>Est. Delivery</strong><span>${data.deliveryDate || '2-3 days'}</span></div><div class="grid-item"><strong>Time Remaining</strong><span>~${data.hoursLeft || 24} hours</span></div></div>${generateTimeline()}<div class="ai-section"><h3>🤖 AI Analysis</h3><ul><li>Package is moving on schedule</li><li>No weather delays detected</li><li>Carrier performance: Excellent</li><li>Delivery confidence: High</li></ul></div><div class="offers-section" data-nosnippet><h3 style="color:#202124;margin-bottom:1rem">Recommended for You</h3><div class="offers-grid"><div class="offer-card"><span class="offer-badge">2% Cash Back</span><h4>💳 Yendo Credit Card</h4><p>Earn 2% back on all purchases. Turn your vehicle into buying power. Build credit while you shop. Perfect for frequent shippers.</p><button class="offer-btn" onclick="window.open('https://bit.ly/yend','_blank');return false">Apply Now →</button></div><div class="offer-card"><span class="offer-badge">From $1</span><h4>🛡️ Package Protection</h4><p>Comprehensive insurance for lost, damaged, or stolen shipments. Coverage starts at just $1 per package. Instant claims processing.</p><button class="offer-btn green" onclick="window.open('https://smrturl.co/o/2367smrturl.co/0b9dc4439/53757068/53757068?s1=','_blank');return false">Get Coverage →</button></div></div></div>`; modal.classList.add('show'); document.body.style.overflow = 'hidden' } function generateTimeline() { const events = [{ icon: '📦', status: 'Package Received', loc: 'Origin Facility', time: 'Mon, 8:15 AM' }, { icon: '✈️', status: 'In Transit', loc: 'Regional Hub', time: 'Mon, 11:42 PM' }, { icon: '🚛', status: 'Arrived at Facility', loc: 'Distribution Center', time: 'Tue, 6:20 AM' }, { icon: '📍', status: 'Out for Delivery', loc: 'Local Hub', time: 'Tue, 7:45 AM' }, { icon: '🏠', status: 'Delivery Scheduled', loc: 'Your Address', time: 'Today, 2:30 PM' }, { icon: '✅', status: 'Ready for Pickup', loc: 'Delivery Complete', time: 'Expected' }]; let html = '<div class="timeline"><h3>📋 Shipment History</h3>'; events.forEach(e => { html += `<div class="timeline-event"><div><strong>${e.icon} ${e.status}</strong><p>${e.loc}</p><p style="color:#80868b;font-size:.8rem">${e.time}</p></div></div>` }); html += '</div>'; return html } function displayError() { const modal = document.getElementById('trackingModal'); const modalBody = document.getElementById('modalBody'); modalBody.innerHTML = '<div style="text-align:center;padding:2rem"><p style="font-size:1.1rem;color:#ea4335;margin-bottom:1rem">⚠️ Unable to track this package</p><p style="color:#5f6368">Please check the tracking number and try again.</p></div>'; modal.classList.add('show') } function closeModal() { const modal = document.getElementById('trackingModal'); modal.classList.remove('show'); document.body.style.overflow = 'auto' }</script>
-</body>
+
+
+<!-- AI Chat Assistant Widget -->
+<div id="ai-chat-widget" style="position:fixed;bottom:20px;right:20px;z-index:9999">
+  <button id="chat-btn" onclick="toggleChat()" style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border:none;box-shadow:0 4px 15px rgba(102,126,234,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform 0.3s" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="white"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/><circle cx="12" cy="10" r="1.5" fill="white"/><circle cx="8" cy="10" r="1.5" fill="white"/><circle cx="16" cy="10" r="1.5" fill="white"/></svg>
+  </button>
+  <div id="chat-box" style="display:none;position:absolute;bottom:80px;right:0;width:350px;height:500px;background:white;border-radius:15px;box-shadow:0 5px 40px rgba(0,0,0,0.16);overflow:hidden;flex-direction:column">
+    <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;padding:20px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <h3 style="margin:0;font-size:18px">🤖 AI Assistant</h3>
+        <p style="margin:5px 0 0;font-size:12px;opacity:0.9">Always here to help!</p>
+      </div>
+      <button onclick="toggleChat()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;padding:0">&times;</button>
+    </div>
+    <div id="chat-messages" style="flex:1;padding:20px;overflow-y:auto;background:#f7f9fc">
+      <div style="background:white;padding:12px;border-radius:10px;margin-bottom:10px;box-shadow:0 2px 5px rgba(0,0,0,0.05)">
+        <p style="margin:0;font-size:14px;color:#667eea;font-weight:600">AI Assistant</p>
+        <p style="margin:5px 0 0;font-size:14px;color:#4a5568">Hi! 👋 I'm your tracking assistant. I can help you with:<br><br>• Track your packages<br>• Explain delivery status<br>• Find courier contact info<br>• Answer shipping questions<br><br>What can I help you with?</p>
+      </div>
+    </div>
+    <div style="padding:15px;border-top:1px solid #e2e8f0;background:white">
+      <div style="display:flex;gap:10px">
+        <input id="chat-input" type="text" placeholder="Ask me anything..." style="flex:1;padding:12px;border:2px solid #e2e8f0;border-radius:8px;font-size:14px;outline:none" onkeypress="if(event.key==='Enter')sendMessage()">
+        <button onclick="sendMessage()" style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white;border:none;padding:12px 20px;border-radius:8px;cursor:pointer;font-weight:600">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+
+    // Real API-based tracking function
+async function trackPackage(event) {
+  event.preventDefault();
+  const trackingInput = document.getElementById('trackingInput');
+  const trackingNumber = trackingInput.value.trim();
+  
+  if (!trackingNumber) {
+    alert('Please enter a tracking number');
+    return;
+  }
+  
+  // Show loading state
+  const modal = document.getElementById('trackingModal');
+  const modalBody = document.getElementById('modalBody');
+  modal.style.display = 'flex';
+  modalBody.innerHTML = '<div style="text-align:center;padding:40px"><p>Tracking your courier...</p><p style="font-size:24px">⏳</p></div>';
+  
+  try {
+    // Call the REAL Cloudflare Pages Function API
+    const response = await fetch('/api/track', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({trackingNumber})
+    });
+    
+    const result = await response.json();
+    
+    if (!result.success) {
+      modalBody.innerHTML = '<div style="text-align:center;padding:40px"><h3>❌ Invalid Tracking Number</h3><p>' + (result.error || 'Please enter a valid courier tracking number') + '</p></div>';
+      return;
+    }
+    
+    const data = result.data;
+    
+    // Display REAL tracking data
+    modalBody.innerHTML = `
+      <div style="padding:20px">
+        <h2 style="margin:0;font-size:18px;color:#667eea">Tracking: ${trackingNumber}</h2>
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px">
+          <div><strong>CARRIER</strong><br>${data.carrier}</div>
+          <div><strong>STATUS</strong><br>${data.status}</div>
+          <div><strong>LOCATION</strong><br>${data.location}</div>
+          <div><strong>WEATHER</strong><br>${data.weather.icon} ${data.weather.condition}, ${data.weather.impact}</div>
+          <div><strong>EST. DELIVERY</strong><br>${data.estimatedDelivery}</div>
+          <div><strong>CONFIDENCE</strong><br>${data.confidence}%</div>
+        </div>
+        <div style="margin-top:20px"><strong>Shipment History:</strong><br>
+        ${data.checkpoints.map(cp => `<div style="padding:5px 0;border-bottom:1px solid #eee">${new Date(cp.date).toLocaleString()}: ${cp.status} - ${cp.location}</div>`).join('')}
+        </div>
+      </div>`;
+    
+  } catch (error) {
+    modalBody.innerHTML = '<div style="text-align:center;padding:40px"><h3>⚠️ Error</h3><p>Could not track courier. Please try again.</p></div>';
+    console.error('Tracking error:', error);
+  }
+}
+function toggleChat(){const box=document.getElementById('chat-box');box.style.display=box.style.display==='none'?'flex':'none'}
+function sendMessage(){const input=document.getElementById('chat-input');const msg=input.value.trim();if(!msg)return;const messages=document.getElementById('chat-messages');messages.innerHTML+=`<div style="text-align:right;margin-bottom:10px"><div style="display:inline-block;background:#667eea;color:white;padding:10px 15px;border-radius:10px;max-width:70%;text-align:left"><p style="margin:0;font-size:14px">${msg}</p></div></div>`;input.value='';messages.scrollTop=messages.scrollHeight;setTimeout(()=>{const responses={track:'To track your package, enter your tracking number in the search box above. We support 1000+ couriers worldwide!',status:'Your package status shows current location, estimated delivery, and shipment history with AI-powered predictions.',contact:'You can find courier contact information in your tracking results. Each carrier has dedicated support.',help:'I can help you track packages, understand delivery status, find courier contacts, and answer shipping questions. Just ask!',default:'Great question! For package tracking, use the search box above with your tracking number. For specific issues, please provide your tracking number and I\'ll help you immediately.'};const resp=Object.keys(responses).find(k=>msg.toLowerCase().includes(k))||'default';messages.innerHTML+=`<div style="background:white;padding:12px;border-radius:10px;margin-bottom:10px;box-shadow:0 2px 5px rgba(0,0,0,0.05)"><p style="margin:0;font-size:14px;color:#667eea;font-weight:600">AI Assistant</p><p style="margin:5px 0 0;font-size:14px;color:#4a5568">${responses[resp]}</p></div>`;messages.scrollTop=messages.scrollHeight},500)}
+</script></body>
 
 </html>
