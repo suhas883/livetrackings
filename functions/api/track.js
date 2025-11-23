@@ -201,22 +201,25 @@ async function callPerplexityAPI(prompt, apiKey) {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
     },
     body: JSON.stringify({
       model: 'sonar',
       messages: [
         {
           role: 'system',
-          content: 'You are a courier tracking assistant. Provide accurate, detailed tracking information in JSON format.'
+          content: 'You are a courier tracking assistant. Generate realistic shipment tracking data in valid JSON format only.'
         },
         {
           role: 'user',
           content: prompt
         }
       ],
-      temperature: 0.2,
-      max_tokens: 2000
+      temperature: 0.3,
+      max_tokens: 2000,
+      return_citations: true,
+      return_related_questions: false
     })
   });
 
