@@ -2,7 +2,7 @@
 # Production Deployment Settings
 
 name = "livetrackings"
-main = "src/index.js"
+# main = "src/index.js"
 compatibility_date = "2024-11-23"
 workers_dev = true
 
