@@ -192,7 +192,7 @@ async function callPerplexityAPI(trackingNum, apiKey) {
 
 async function callAbacusAPI(trackingNum, apiKey) {
   try {
-    const response = await fetch('https://api.abacusroute.com/v1/tracking', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions ', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
