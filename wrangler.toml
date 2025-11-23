@@ -1,68 +1,16 @@
-# Cloudflare Pages + Functions Configuration for LiveTrackings
-# Production Deployment Settings
+# Cloudflare Pages Configuration for LiveTrackings
+# This is a static site with HTML files in the root directory
 
 name = "livetrackings"
-# main = "src/index.js"
 compatibility_date = "2024-11-23"
-workers_dev = true
 
-# Environment Variables (Secrets)
-[env.production]
-vars = { ENVIRONMENT = "production", CACHE_TTL = 3600 }
-secrets = [
-  "PERPLEXITY_API_KEY",
-  "SENDGRID_API_KEY",
-  "SENDGRID_FROM_EMAIL",
-  "TWILIO_ACCOUNT_SID",
-  "TWILIO_AUTH_TOKEN",
-  "TWILIO_PHONE_NUMBER",
-  "TRACKINGMORE_API_KEY"
-]
+# This configuration is for Pages static site hosting
+# The HTML files (index.html, blog.html, etc.) are in the root directory
+# No build process is needed - Pages will serve them directly
 
-[env.staging]
-vars = { ENVIRONMENT = "staging", CACHE_TTL = 600 }
-
-# KV Namespace Bindings for Cloudflare Pages
-[[kv_namespaces]]
-binding = "EMAIL_SUBSCRIPTIONS"
-id = "YOUR_KV_NAMESPACE_ID_HERE"
-preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID_HERE"
-
-[[kv_namespaces]]
-binding = "SMS_SUBSCRIPTIONS"
-id = "YOUR_KV_NAMESPACE_ID_HERE"
-preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID_HERE"
-
-[[kv_namespaces]]
-binding = "TRACKING_CACHE"
-id = "YOUR_KV_NAMESPACE_ID_HERE"
-preview_id = "YOUR_PREVIEW_KV_NAMESPACE_ID_HERE"
-
-# Routes Configuration
-[[routes]]
-pattern = "livetrackings.com/api/*"
-zone_name = "livetrackings.com"
-
-[[routes]]
-pattern = "www.livetrackings.com/api/*"
-zone_name = "livetrackings.com"
-
-# Build Configuration
-[build]
-command = "npm install"
-cwd = "./"
-destination = "dist/"
-
-[build.upload]
-format = "service-worker"
-
-# Build Watch Paths
-watch_paths = ["functions/**/*.js", "src/**/*.js"]
-
-# Analytics Engine
-[analytics]
-enabled = true
-
-# Logpush for Debugging
-[logpush]
-data_types = ["http_requests", "firewall_events"]
+# Uncomment below if you need API routes with Workers
+# [env.production]
+# routes = [
+#   { pattern = "livetrackings.com/api/*", zone_name = "livetrackings.com" },
+#   { pattern = "www.livetrackings.com/api/*", zone_name = "livetrackings.com" }
+# ]
