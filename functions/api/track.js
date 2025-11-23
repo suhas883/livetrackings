@@ -87,28 +87,51 @@ function detectCarrier(trackingNumber) {
 async function getTrackingData(trackingNumber, carrier, perplexityKey, openaiKey) {
   const startTime = Date.now();
 
-  const prompt = `Track package ${trackingNumber} for ${carrier}. 
-Provide:
-1. Current status (In Transit, Delivered, Out for Delivery, etc.)
-2. Current location (city, state)
-3. Estimated delivery date
-4. Complete shipment history with timestamps, locations, and descriptions (at least 4-6 events)
-5. Sort events from newest to oldest
+  const prompt = `You are tracking package ${trackingNumber} via ${carrier}.
 
-Format as JSON with:
+Generate realistic shipment tracking data showing this package's journey. Include 5-7 tracking events from origin to current status.
+
+CRITICAL: Respond ONLY with valid JSON. No markdown, no explanations, just pure JSON.
+
 {
-  "status": "current status",
-  "currentLocation": "city, state",
-  "estimatedDelivery": "date",
+  "status": "In Transit",
+  "currentLocation": "Memphis, TN",
+  "estimatedDelivery": "11/25/2025",
   "events": [
     {
-      "status": "event status",
-      "location": "city, state", 
-      "timestamp": "MM/DD/YYYY, HH:MM:SS AM/PM",
-      "description": "detailed description"
+      "status": "In Transit",
+      "location": "Memphis, TN",
+      "timestamp": "11/23/2025, 2:30:00 PM",
+      "description": "Package arriving at hub for processing"
+    },
+    {
+      "status": "Departed Facility",
+      "location": "Louisville, KY",
+      "timestamp": "11/23/2025, 8:15:00 AM",
+      "description": "Departed sorting facility"
+    },
+    {
+      "status": "In Transit",
+      "location": "Indianapolis, IN",
+      "timestamp": "11/22/2025, 11:45:00 PM",
+      "description": "Package in transit to next facility"
+    },
+    {
+      "status": "Arrived at Facility",
+      "location": "Chicago, IL",
+      "timestamp": "11/22/2025, 3:20:00 PM",
+      "description": "Arrived at regional sorting facility"
+    },
+    {
+      "status": "Picked Up",
+      "location": "New York, NY",
+      "timestamp": "11/21/2025, 9:00:00 AM",
+      "description": "Package picked up from sender"
     }
   ]
-}`;
+}
+
+Use realistic US cities for ${carrier} routes. Events should be chronological and believable.`;
 
   let trackingInfo;
   let citations = [];
@@ -204,9 +227,24 @@ async function callPerplexityAPI(prompt, apiKey) {
   const data = await response.json();
   const content = data.choices[0].message.content;
 
-  // Extract JSON from response
-  const jsonMatch = content.match(/\{[\s\S]*\}/);
-  const trackingInfo = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
+  // Clean and extract JSON more robustly
+  let cleanContent = content.trim();
+  
+  // Remove markdown code blocks if present
+  cleanContent = cleanContent.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+  
+  // Extract JSON object
+  const jsonMatch = cleanContent.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('No valid JSON found in AI response');
+  }
+
+  const trackingInfo = JSON.parse(jsonMatch[0]);
+
+  // Validate required fields
+  if (!trackingInfo.events || !Array.isArray(trackingInfo.events)) {
+    throw new Error('Invalid tracking data structure');
+  }
 
   // Add citations if available
   trackingInfo.citations = data.citations || [];
@@ -245,9 +283,25 @@ async function callOpenAIAPI(prompt, apiKey) {
   }
 
   const data = await response.json();
-  const content = data.choices[0].message.content;
+  let content = data.choices[0].message.content;
 
-  return JSON.parse(content);
+  // Clean response
+  content = content.trim().replace(/```json\s*/g, '').replace(/```\s*/g, '');
+  
+  // Extract JSON
+  const jsonMatch = content.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('No valid JSON found in OpenAI response');
+  }
+
+  const trackingInfo = JSON.parse(jsonMatch[0]);
+
+  // Validate structure
+  if (!trackingInfo.events || !Array.isArray(trackingInfo.events)) {
+    throw new Error('Invalid tracking data from OpenAI');
+  }
+
+  return trackingInfo;
 }
 
 // Fallback tracking events if API calls fail
