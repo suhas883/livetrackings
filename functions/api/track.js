@@ -72,8 +72,22 @@ export async function onRequestPost(context) {
     let trackingData = null;
     let source = 'Unknown';
     
-    // TRY PRIMARY API: Perplexity
-    if (PERPLEXITY_API_KEY) {
+    // TRY PRIMARY API: Abacus Route
+    if (ABACUS_API_KEY) {
+      try {
+        trackingData = await callAbacusAPI(trackingNumber, ABACUS_API_KEY);
+        if (trackingData && !trackingData.error) {
+          source = 'PAbacus Route LLM';
+        } else {
+          trackingData = null;
+        }
+      } catch (err) {
+        console.warn('Abacus API failed:', err.message);
+      }
+    }
+    
+    // FALLBACK: Try Perplexity API
+    if (!trackingData && PERPLEXITY_API_KEY) {
       try {
         trackingData = await callPerplexityAPI(trackingNumber, PERPLEXITY_API_KEY);
         if (trackingData && !trackingData.error) {
@@ -83,20 +97,6 @@ export async function onRequestPost(context) {
         }
       } catch (err) {
         console.warn('Perplexity API failed:', err.message);
-      }
-    }
-    
-    // FALLBACK: Try Abacus Route LLM API
-    if (!trackingData && ABACUS_API_KEY) {
-      try {
-        trackingData = await callAbacusAPI(trackingNumber, ABACUS_API_KEY);
-        if (trackingData && !trackingData.error) {
-          source = 'Abacus Route LLM';
-        } else {
-          trackingData = null;
-        }
-      } catch (err) {
-        console.warn('Abacus API failed:', err.message);
       }
     }
     
