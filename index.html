@@ -209,19 +209,56 @@
         
         /* Enhanced search form styling */
         #trackingInput {
-            font-size: 18px !important;
-            padding: 16px 20px !important;
-            height: auto !important;
-            min-height: 50px !important;
-        }
+    font-size: 20px !important;
+    padding: 18px 24px !important;
+    height: auto !important;
+    min-height: 58px !important;
+    border: 2px solid #ff6d00 !important;
+    border-radius: 12px !important;
+    background: linear-gradient(135deg, #fff 0%, #fffbf0 100%) !important;
+    box-shadow: 0 4px 20px rgba(255, 109, 0, 0.15) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    font-weight: 500;
+  }
+  
+  #trackingInput:hover {
+    border-color: #ff9c40 !important;
+    box-shadow: 0 6px 30px rgba(255, 109, 0, 0.25) !important;
+    transform: translateY(-2px);
+  }
+  
+  #trackingInput:focus {
+    outline: none !important;
+    border-color: #ff6d00 !important;
+    box-shadow: 0 0 0 4px rgba(255, 109, 0, 0.2), 0 6px 30px rgba(255, 109, 0, 0.3) !important;
+    background: linear-gradient(135deg, #fff 0%, #fff8f0 100%) !important;
         
         #trackBtn {
-            padding: 16px 40px !important;
-            font-size: 18px !important;
-            height: auto !important;
-            min-height: 50px !important;
-            font-weight: 700 !important;
-        }
+    padding: 18px 48px !important;
+    background: linear-gradient(135deg, #ff6d00 0%, #ff9c40 100%) !important;
+    color: #fff !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-size: 18px !important;
+    height: auto !important;
+    min-height: 58px !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    box-shadow: 0 6px 20px rgba(255, 109, 0, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  #trackBtn:hover {
+    background: linear-gradient(135deg, #ff8a36 0%, #ffb366 100%) !important;
+    box-shadow: 0 8px 30px rgba(255, 109, 0, 0.4) !important;
+    transform: translateY(-3px) !important;
+  }
+  
+  #trackBtn:active {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 15px rgba(255, 109, 0, 0.3) !important;
         
         /* Modal enhancements */
         .modal-overlay {
