@@ -6,17 +6,11 @@ export async function onRequestPost(context) {
     const trackingNumber = body.trackingNumber?.trim();
 
     if (!trackingNumber || trackingNumber.length < 5) {
-      return jsonResponse({
-        success: false,
-        error: 'Please enter a valid tracking number (at least 5 characters)'
-      }, 400);
+      return jsonResponse({ success: false, error: 'Please enter a valid tracking number (at least 5 characters)' }, 400);
     }
 
     if (!/[A-Z0-9]/i.test(trackingNumber)) {
-      return jsonResponse({
-        success: false,
-        error: 'Tracking number must contain letters or numbers'
-      }, 400);
+      return jsonResponse({ success: false, error: 'Tracking number must contain letters or numbers' }, 400);
     }
 
     const PERPLEXITY_API_KEY = env?.PERPLEXITY_API_KEY;
@@ -105,10 +99,7 @@ export async function onRequestPost(context) {
         state: trackingData.currentLocation?.state || 'State',
         country: trackingData.currentLocation?.country || 'USA',
         facility: trackingData.currentLocation?.facility || `${getRealisticCity(checkpoints)} Distribution Center`,
-        facilityType: trackingData.currentLocation?.facilityType || 'Distribution',
-        coordinates: trackingData.currentLocation?.coordinates || null,
-        timezone: trackingData.currentLocation?.timezone || 'America/New_York',
-        localTime: new Date().toLocaleString('en-US', { timeZone: 'America/New_York' })
+        facilityType: trackingData.currentLocation?.facilityType || 'Distribution'
       },
       estimatedDelivery: estimatedDeliveryDisplay,
       estimatedDeliveryWindow: trackingData.estimatedDeliveryWindow || {
@@ -121,86 +112,19 @@ export async function onRequestPost(context) {
         weight: trackingData.packageDetails?.weight || '2.5 lbs',
         dimensions: trackingData.packageDetails?.dimensions || '12x10x4 inches',
         type: trackingData.packageDetails?.type || 'Package',
-        serviceLevel: trackingData.packageDetails?.serviceLevel || 'Standard Ground',
-        value: trackingData.packageDetails?.value || null,
-        insured: trackingData.packageDetails?.insured || false
-      },
-      weather: {
-        condition: trackingData.weather?.condition || 'Clear',
-        icon: trackingData.weather?.icon || '☀️',
-        temp: trackingData.weather?.temp || '24°C',
-        tempF: trackingData.weather?.tempF || '75°F',
-        humidity: trackingData.weather?.humidity || '45%',
-        windSpeed: trackingData.weather?.windSpeed || '10 mph',
-        impact: trackingData.weather?.impact || 'Low',
-        impactLevel: trackingData.weather?.impactLevel || 1,
-        details: trackingData.weather?.details || 'Weather conditions are favorable for on-time delivery',
-        forecast: trackingData.weather?.forecast || 'Clear skies expected for next 48 hours',
-        alerts: trackingData.weather?.alerts || []
-      },
-      aiInsight: trackingData.aiInsight || generateDetailedInsight(trackingNumber, statusCode),
-      aiPredictions: {
-        onTimeDelivery: trackingData.aiPredictions?.onTimeDelivery || 94,
-        earlyDelivery: trackingData.aiPredictions?.earlyDelivery || 15,
-        delayRisk: trackingData.aiPredictions?.delayRisk || 6,
-        confidenceScore: trackingData.confidence || 85
+        serviceLevel: trackingData.packageDetails?.serviceLevel || 'Standard Ground'
       },
       checkpoints: checkpoints,
-      metrics: {
-        totalCheckpoints: checkpoints.length,
-        completedCheckpoints: getCompletedCheckpoints(checkpoints),
-        remainingCheckpoints: getRemainingCheckpoints(checkpoints),
-        averageTransitTime: trackingData.metrics?.averageTransitTime || '2-3 days',
-        onTimePerformance: trackingData.metrics?.onTimePerformance || '94%',
-        estimatedProgress: trackingData.metrics?.estimatedProgress || 65,
-        nextUpdateIn: trackingData.metrics?.nextUpdateIn || '2-4 hours',
-        velocityScore: trackingData.metrics?.velocityScore || 8.5
-      },
-      deliveryInstructions: trackingData.deliveryInstructions || {
-        signatureRequired: false,
-        leaveAtDoor: true,
-        specialInstructions: null,
-        accessCode: null,
-        contactOnArrival: false
-      },
-      riskFactors: trackingData.riskFactors || {
-        weatherDelay: 'Low',
-        holidayImpact: 'None',
-        routeCongestion: 'Low',
-        carrierPerformance: 'Excellent',
-        overallRisk: 'Low'
-      },
-      timeline: generateTimeline(checkpoints),
-      lastUpdate: trackingData.lastUpdate || new Date().toISOString(),
-      lastUpdateHuman: getHumanTime(new Date()),
-      nextExpectedUpdate: trackingData.nextExpectedUpdate || getEstimatedDate(0.2),
-      nextExpectedUpdateHuman: getHumanTime(getEstimatedDate(0.2)),
-      notifications: {
-        enabled: true,
-        channels: ['email', 'sms'],
-        frequency: 'on_change',
-        lastSent: null
-      },
       offers: generateStrategicOffers(statusCode, carrier),
       source: 'AI Prediction',
-      timestamp: new Date().toISOString(),
-      cached: false,
-      apiVersion: '2.0'
+      timestamp: new Date().toISOString()
     };
 
-    return jsonResponse({
-      success: true,
-      data: response,
-      timestamp: new Date().toISOString()
-    }, 200);
+    return jsonResponse({ success: true, data: response, timestamp: new Date().toISOString() }, 200);
 
   } catch (error) {
     console.error('Tracking error:', error);
-    return jsonResponse({
-      success: false,
-      error: 'Unable to track package. Please try again.',
-      details: error.message
-    }, 500);
+    return jsonResponse({ success: false, error: 'Unable to track package. Please try again.', details: error.message }, 500);
   }
 }
 
@@ -356,7 +280,7 @@ async function callPerplexityAPI(trackingNum, apiKey) {
         content: 'You are a shipment tracking expert. Return ONLY valid JSON with detailed tracking data.'
       }, {
         role: 'user',
-        content: `Track: ${trackingNum}. Return JSON with carrier, status, checkpoints array (with date, status, location, facility, description), origin/destination cities, estimated delivery, weather, confidence score.`
+        content: `Track: ${trackingNum}. Return JSON with carrier, status, checkpoints array (with date, status, location, facility, description), origin/destination cities, estimated delivery.`
       }],
       temperature: 0.2,
       max_tokens: 3000
@@ -366,7 +290,6 @@ async function callPerplexityAPI(trackingNum, apiKey) {
   if (!response.ok) throw new Error(`Perplexity API ${response.status}`);
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
-
   if (!content) return null;
   try {
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -402,7 +325,6 @@ async function callOpenAIAPI(trackingNum, apiKey) {
   if (!response.ok) throw new Error(`OpenAI API ${response.status}`);
   const data = await response.json();
   const content = data.choices?.[0]?.message?.content;
-
   if (!content) return null;
   try {
     return JSON.parse(content);
@@ -421,175 +343,59 @@ function generatePremiumData(trackingNum) {
 
   return {
     carrier,
-    status: 'In Transit',
-    statusCode: 'IT',
+    status: 'Out For Delivery',
+    statusCode: 'OFD',
     location: currentCity,
-    origin: {
-      name: 'Shipper Co.',
-      city: originCity,
-      state: 'State',
-      country: 'USA',
-      timestamp: new Date(Date.now() - 86400000).toISOString()
-    },
-    destination: {
-      name: 'Recipient',
-      city: destCity,
-      state: 'State',
-      country: 'USA'
-    },
-    journey: {
-      totalDistance: '450 miles',
-      totalDuration: '2-3 days'
-    },
-    currentLocation: {
-      city: currentCity,
-      state: 'State',
-      country: 'USA',
-      facility: `${currentCity.split(',')[0]} Distribution Center`
-    },
-    packageDetails: {
-      weight: '2.5 lbs',
-      dimensions: '12x10x4 inches',
-      type: 'Package',
-      serviceLevel: 'Standard Ground'
-    },
-    metrics: {
-      averageTransitTime: '2-4 days',
-      onTimePerformance: '94%',
-      estimatedProgress: 65,
-      nextUpdateIn: '2-4 hours',
-      velocityScore: 8.5
-    },
-    riskFactors: {
-      weatherDelay: 'Low',
-      holidayImpact: 'None',
-      routeCongestion: 'Low',
-      carrierPerformance: 'Excellent',
-      overallRisk: 'Low'
-    }
+    origin: { name: 'Shipper Co.', city: originCity, state: 'State', country: 'USA', timestamp: new Date(Date.now() - 86400000).toISOString() },
+    destination: { name: 'Recipient', city: destCity, state: 'State', country: 'USA' },
+    journey: { totalDistance: '450 miles', totalDuration: '2-3 days' },
+    currentLocation: { city: currentCity, state: 'State', country: 'USA', facility: `${currentCity.split(',')[0]} Distribution Center` },
+    packageDetails: { weight: '2.5 lbs', dimensions: '12x10x4 inches', type: 'Package', serviceLevel: 'Standard Ground' },
+    metrics: { averageTransitTime: '2-4 days', onTimePerformance: '94%', estimatedProgress: 65, nextUpdateIn: '2-4 hours', velocityScore: 8.5 },
+    riskFactors: { weatherDelay: 'Low', holidayImpact: 'None', routeCongestion: 'Low', carrierPerformance: 'Excellent', overallRisk: 'Low' },
+    estimatedDelivery: new Date(Date.now() + 3 * 86400000).toISOString(),
+    checkpoints: [
+      { date: new Date().toISOString(), status: 'Out For Delivery', location: 'Fort Myers, FL', facility: 'Fort Myers Local Delivery Station', description: 'Package is out for delivery to the recipient.' },
+      { date: new Date(Date.now() - 4 * 3600000).toISOString(), status: 'Departed Facility', location: currentCity, facility: `${currentCity.split(',')[0]} Distribution Hub`, description: 'Departed distribution facility.' }
+    ]
   };
 }
 
 function generateDetailedCheckpoints(trackingNum) {
   const now = new Date();
   const cities = ['Memphis, TN', 'Louisville, KY', 'Chicago, IL', 'Los Angeles, CA'];
-  const statuses = ['Package Received', 'In Transit', 'Sorting Complete', 'Departed Facility', 'Arrived at Facility'];
-
-  return [{
-    date: new Date(now - 2 * 3600000).toISOString(),
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    location: cities[0],
-    facility: `${cities[0].split(',')[0]} Distribution Center`,
-    description: 'Package is being processed and will depart shortly',
-    scanType: 'transit',
-    notes: 'On schedule for delivery'
-  },
-  {
-    date: new Date(now - 6 * 3600000).toISOString(),
-    status: 'Departed Facility',
-    location: cities[1],
-    facility: `${cities[1].split(',')[0]} Sorting Facility`,
-    description: 'Package has departed and is en route',
-    scanType: 'transit',
-    notes: 'Next scan in 4-6 hours'
-  },
-  {
-    date: new Date(now - 12 * 3600000).toISOString(),
-    status: 'Arrived at Facility',
-    location: cities[2],
-    facility: `${cities[2].split(',')[0]} Hub Terminal`,
-    description: 'Package arrived and is being processed',
-    scanType: 'sorting',
-    notes: 'Sorting completed'
-  },
-  {
-    date: new Date(now - 24 * 3600000).toISOString(),
-    status: 'Package Received',
-    location: cities[3],
-    facility: `${cities[3].split(',')[0]} Origin Facility`,
-    description: 'Package picked up from shipper',
-    scanType: 'pickup',
-    notes: 'Initial scan'
-  }];
-}
-
-function generateDetailedInsight(trackingNum, statusCode) {
-  const insights = {
-    'IT': 'Your package is progressing smoothly. Predicted on-time delivery with 94% confidence. Weather favorable. Will dispatch within 2-4 hours.',
-    'OFD': 'Great! Your package is out for delivery today. Expected arrival within 3-6 hours.',
-    'DL': 'Your package was successfully delivered on schedule!',
-    'PS': 'Your package is being processed. Will enter transportation within 2-4 hours.',
-    'EX': 'We detected an exception. Our team is working to resolve this. Expected resolution: 4-8 hours.'
-  };
-  return insights[statusCode] || insights['IT'];
-}
-
-function generateTimeline(checkpoints) {
-  if (!checkpoints || !checkpoints.length) return [];
-  return checkpoints.map((cp, index) => ({
-    step: checkpoints.length - index,
-    title: cp.status,
-    location: cp.location,
-    timestamp: cp.date,
-    completed: true,
-    active: index === 0,
-    icon: getTimelineIcon(cp.scanType)
-  }));
+  return [
+    { date: new Date(now - 2 * 3600000).toISOString(), status: 'Out For Delivery', location: cities[0], facility: `${cities[0].split(',')[0]} Distribution Center`, description: 'Package is out for delivery.' },
+    { date: new Date(now - 6 * 3600000).toISOString(), status: 'Departed Facility', location: cities[1], facility: `${cities[1].split(',')[0]} Sorting Facility`, description: 'Package has departed.' },
+    { date: new Date(now - 12 * 3600000).toISOString(), status: 'Arrived at Facility', location: cities[2], facility: `${cities[2].split(',')[0]} Hub Terminal`, description: 'Package arrived.' },
+    { date: new Date(now - 24 * 3600000).toISOString(), status: 'Package Received', location: cities[3], facility: `${cities[3].split(',')[0]} Origin Facility`, description: 'Package picked up.' }
+  ];
 }
 
 function detectCarrier(trackingNum) {
   const tn = trackingNum.toUpperCase();
-  if (/^1Z[A-Z0-9]{16}$/i.test(tn)) return 'UPS';
-  if (/^[0-9]{12,14}$/i.test(tn)) return 'FedEx';
-  if (/^(94|92|93)[0-9]{20}$/i.test(tn)) return 'USPS';
-  if (/^[A-Z]{2}[0-9]{9}[A-Z]{2}$/i.test(tn)) return 'DHL';
-  if (/^TBA[0-9]{12}$/i.test(tn)) return 'Amazon';
-  if (/^[0-9]{10,12}$/i.test(tn)) return 'Blue Dart';
+  if (/^1Z[A-Z0-9]{16}$/.test(tn)) return 'UPS';
+  if (/^[0-9]{12,14}$/.test(tn)) return 'FedEx';
+  if (/^(94|92|93)[0-9]{20}$/.test(tn)) return 'USPS';
+  if (/^[A-Z]{2}[0-9]{9}[A-Z]{2}$/.test(tn)) return 'DHL';
+  if (/^TBA[0-9]{12}$/.test(tn)) return 'Amazon';
+  if (/^[0-9]{10,12}$/.test(tn)) return 'Blue Dart';
   return 'Courier Not Found';
 }
 
 function getStatusEmoji(statusCode) {
-  const emojis = {
-    'IT': '🚚',
-    'OFD': '📦',
-    'DL': '✅',
-    'PS': '⏳',
-    'EX': '⚠️'
-  };
+  const emojis = { 'IT': '🚚', 'OFD': '📦', 'DL': '✅', 'PS': '⏳', 'EX': '⚠️' };
   return emojis[statusCode] || '📍';
 }
 
 function getStatusColor(statusCode) {
-  const colors = {
-    'IT': '#1a73e8',
-    'OFD': '#ff6d00',
-    'DL': '#34a853',
-    'PS': '#5f6368',
-    'EX': '#ea4335'
-  };
+  const colors = { 'IT': '#1a73e8', 'OFD': '#ff6d00', 'DL': '#34a853', 'PS': '#5f6368', 'EX': '#ea4335' };
   return colors[statusCode] || '#1a73e8';
-}
-
-function getTimelineIcon(scanType) {
-  const icons = {
-    'pickup': '📤',
-    'transit': '🚛',
-    'delivery': '🏠',
-    'sorting': '📊',
-    'exception': '⚠️'
-  };
-  return icons[scanType] || '📍';
 }
 
 function getHumanTime(dateInput) {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
-  return date.toLocaleString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  return date.toLocaleString('en-US', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function getTimeAgo(date) {
@@ -608,14 +414,6 @@ function calculateDaysRemaining(estimatedDate) {
   const est = new Date(estimatedDate);
   const diff = est - now;
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
-function getCompletedCheckpoints(checkpoints) {
-  return checkpoints?.length || 4;
-}
-
-function getRemainingCheckpoints(checkpoints) {
-  return Math.max(0, 6 - (checkpoints?.length || 4));
 }
 
 function extractOriginCity(checkpoints) {
