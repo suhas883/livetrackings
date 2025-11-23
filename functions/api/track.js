@@ -32,7 +32,7 @@ export async function onRequestPost(context) {
     if (PERPLEXITY_API_KEY) {
       try {
         trackingData = await callPerplexityAPI(trackingNumber, PERPLEXITY_API_KEY);
-        if (trackingData) source = 'Perplexity Sonar Pro';
+        if (trackingData) source = 'AI';
       } catch (err) {
         console.error('Perplexity failed:', err.message);
       }
