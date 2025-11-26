@@ -1,367 +1,319 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <!-- SEO & Meta Tags -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📦</text></svg>">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
-    <title>LiveTrackings.com - AI Courier Tracker</title>
-    <meta name="description" content="Track FedEx, UPS, USPS, Amazon, DHL with the world's first AI predictive engine." />
-    
-    <!-- Fonts & Tailwind -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & Babel -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Icon Library -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
-    <style>
-      body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; overflow-x: hidden; }
-      .glass-card {
-        background: rgba(255, 255, 255, 0.9);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.5);
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-      }
-      .gradient-text {
-        background: linear-gradient(to right, #2563eb, #7c3aed);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
-      .animate-slide-up { animation: slideUp 0.6s ease-out; }
-      @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
-
-    <script type="text/babel">
-      const { useState, useEffect } = React;
-
-      // Helper function to re-initialize Lucide icons after state updates
-      const initializeIcons = () => {
-          if (window.lucide && typeof window.lucide.createIcons === 'function') {
-              window.lucide.createIcons();
-          }
-      };
-
-      // --- AI ENGINE LOGIC (Calls the Secure Backend Proxy) ---
-      const fetchPrediction = async (trackingNumber) => {
-        try {
-            // This URL MUST resolve to your deployed serverless function (e.g., Vercel / Netlify)
-            const response = await fetch('/api/predict', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ trackingNumber })
-            });
-            
-            if (!response.ok) {
-                const errorText = await response.text();
-                // Fallback attempt to parse JSON error message
-                try {
-                    const error = JSON.parse(errorText);
-                    throw new Error(error.message || `Proxy failed with status ${response.status}.`);
-                } catch {
-                    throw new Error(`Proxy failed with status ${response.status}. Server response: ${errorText.substring(0, 100)}...`);
-                }
-            }
-            
-            return await response.json();
-
-        } catch (e) {
-            console.error("Tracking Error:", e.message);
-            // Fallback object returned to the ResultDashboard if connection fails
-             return {
-                 status: "Connection Failed",
-                 carrier: "Error",
-                 location: "Check Network",
-                 prediction: `Unable to connect to the tracking service. Check your network or ensure the backend serverless function is deployed correctly at /api/predict. Error: ${e.message}`,
-                 confidence: 0,
-                 weatherRisk: "High",
-                 source: "Connection Failure"
-            };
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Track My Package Live | AI Courier Tracking for 800+ Carriers | LiveTrackings.com</title>
+  <meta name="description" content="Track any package in seconds with AI. LiveTrackings.com uses Perplexity Sonar Pro to track 800+ couriers worldwide with real-time updates, delivery predictions, SMS & email alerts." />
+  <meta name="keywords" content="track my package, courier tracking, live package tracking, FedEx tracking, UPS tracking, USPS tracking, DHL tracking, Amazon order tracking, international shipment tracker, AI package tracking" />
+  <meta property="og:title" content="LiveTrackings.com – AI Courier Tracking for 800+ Carriers" />
+  <meta property="og:description" content="Real-time package tracking powered by Perplexity Sonar Pro. Beat shipment anxiety with live status, location, and delivery predictions." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://livetrackings.com/" />
+  <link rel="canonical" href="https://livetrackings.com/" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "LiveTrackings",
+    "url": "https://livetrackings.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://livetrackings.com/?tracking={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How do I track my package on LiveTrackings.com?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Enter your tracking number and click Track Now. Our AI uses Perplexity Sonar Pro to fetch real-time updates from 800+ couriers worldwide."
         }
-      };
+      },
+      {
+        "@type": "Question",
+        "name": "Is LiveTrackings using AI for package tracking?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. LiveTrackings uses Perplexity Sonar Pro as primary and OpenAI as backup to interpret and enrich tracking data."
+        }
+      }
+    ]
+  }
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Inter', system-ui; background: #f5f5ff; color: #0f172a; }
+    .loading-spin { animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .gradient-text { background: linear-gradient(135deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .modal { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.75); z-index: 50; align-items: center; justify-content: center; }
+    .modal.active { display: flex; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-slate-50">
+  <div id="app"></div>
 
-      // --- COMPONENTS ---
-      
-      const Header = () => {
-        useEffect(initializeIcons, []);
-        return (
-            <header className="fixed w-full z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 transition-all duration-300">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-600 p-2 rounded-xl shadow-lg shadow-blue-600/20">
-                    <i data-lucide="package" className="text-white w-6 h-6"></i>
-                  </div>
-                  <span className="font-black text-2xl text-gray-900 tracking-tighter">Live<span className="text-blue-600">Trackings</span></span>
-                </div>
-                <nav className="hidden md:flex gap-8 font-medium text-sm text-gray-600">
-                  <a href="#features" className="hover:text-blue-600 transition">AI Features</a>
-                  <a href="#blog" className="hover:text-blue-600 transition">Tracking Insights</a>
-                </nav>
-              </div>
-            </header>
-        );
-      };
+  <div id="smsModal" class="modal">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-[90%] max-w-md shadow-2xl">
+      <h2 class="text-xl font-bold mb-3">📱 Enable SMS Delivery Alerts</h2>
+      <p class="text-sm text-slate-300 mb-4">Get a text message when your package status changes.</p>
+      <form id="smsForm" class="space-y-3">
+        <input id="smsPhone" type="tel" placeholder="+1 555 123 4567" class="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-lime-400 text-slate-900 font-semibold text-sm hover:from-emerald-400 hover:to-lime-300">✅ Enable SMS</button>
+        <button type="button" onclick="document.getElementById('smsModal').classList.remove('active')" class="w-full bg-slate-800 text-slate-200 py-2.5 rounded-xl text-sm hover:bg-slate-700">Cancel</button>
+      </form>
+    </div>
+  </div>
 
-      const Hero = ({ onTrack }) => {
-        const [input, setInput] = useState('');
-        const [loading, setLoading] = useState(false);
+  <div id="emailModal" class="modal">
+    <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-[90%] max-w-md shadow-2xl">
+      <h2 class="text-xl font-bold mb-3">📧 Enable Email Alerts</h2>
+      <p class="text-sm text-slate-300 mb-4">Receive detailed email updates for tracking events.</p>
+      <form id="emailForm" class="space-y-3">
+        <input id="emailAddress" type="email" placeholder="you@example.com" class="w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-600 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-400 text-slate-900 font-semibold text-sm hover:from-sky-400 hover:to-indigo-300">✅ Enable Email</button>
+        <button type="button" onclick="document.getElementById('emailModal').classList.remove('active')" class="w-full bg-slate-800 text-slate-200 py-2.5 rounded-xl text-sm hover:bg-slate-700">Cancel</button>
+      </form>
+    </div>
+  </div>
 
-        const handleSubmit = async (e) => {
-          e.preventDefault();
-          if (!input.trim()) return;
-          setLoading(true);
-          await onTrack(input);
-          setLoading(false);
-        };
-        
-        useEffect(initializeIcons, [loading]);
+  <script>
+    const ENV = {
+      PERPLEXITY_API_KEY: '',
+      OPENAI_API_KEY: '',
+      TWILIO_ACCOUNT_SID: '',
+      TWILIO_AUTH_TOKEN: '',
+      TWILIO_PHONE: '',
+      SENDGRID_API_KEY: '',
+      SENDGRID_FROM: 'noreply@livetrackings.com',
+      YENDO_CARD_LINK: '#',
+      SWEEPSTAKES_LINK: '#'
+    };
 
-        return (
-          <section className="pt-32 pb-20 px-4 text-center bg-gradient-to-b from-blue-50 to-white overflow-hidden relative">
-            <div className="relative z-10 max-w-4xl mx-auto animate-slide-up">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-8 border border-blue-200 shadow-sm">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
-                </span>
-                The First AI-Powered Tracker
-              </div>
-              
-              <h1 className="text-5xl md:text-7xl font-black text-gray-900 mb-8 leading-tight tracking-tight">
-                Track Smarter.<br />
-                <span className="gradient-text">Predict Faster.</span>
-              </h1>
-              
-              <p className="text-lg md:text-xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Beat traditional trackers. We use AI to analyze logistics data, weather, and traffic to tell you exactly when your package will arrive.
-              </p>
+    class LiveTrackingsApp {
+      constructor() {
+        this.trackingNumber = '';
+        this.loading = false;
+        this.error = null;
+        this.result = null;
+        this.userPhone = localStorage.getItem('lt_phone') || '';
+        this.userEmail = localStorage.getItem('lt_email') || '';
+        this.init();
+      }
 
-              <div className="glass-card p-3 rounded-2xl max-w-2xl mx-auto transform hover:scale-[1.01] transition duration-300">
-                <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-3">
-                  <input 
-                    type="text" 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Enter tracking number..." 
-                    className="flex-grow p-4 rounded-xl text-lg bg-gray-50 border border-gray-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 outline-none transition-all placeholder-gray-400 text-gray-800 font-medium"
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-8 rounded-xl text-lg transition-all disabled:opacity-80 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-600/30 min-w-[180px]"
-                  >
-                    {loading ? (
-                      <>
-                        <i data-lucide="loader-2" className="animate-spin"></i>
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        AI Track
-                        <i data-lucide="arrow-right" className="w-5 h-5"></i>
-                      </>
-                    )}
-                  </button>
-                </form>
+      init() {
+        this.render();
+        this.attachEvents();
+      }
+
+      render() {
+        const app = document.getElementById('app');
+        app.innerHTML = `
+          <header class="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+            <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+              <div>
+                <span class="text-3xl font-black gradient-text">LiveTrackings.com</span>
+                <p class="text-xs text-slate-400 mt-1">AI Courier Tracking • 800+ Carriers • SMS & Email Alerts</p>
               </div>
             </div>
-          </section>
-        );
-      };
+          </header>
 
-      const ResultDashboard = ({ data, number }) => {
-        useEffect(initializeIcons, [data]);
+          <main class="max-w-6xl mx-auto px-4 pt-10 pb-20">
+            <section class="grid lg:grid-cols-[1.2fr,0.9fr] gap-8 items-start">
+              <div>
+                <h1 class="text-4xl lg:text-5xl font-black leading-tight mb-4">
+                  Track any package in <span class="gradient-text">seconds</span> with AI.
+                </h1>
+                <p class="text-base text-slate-300 mb-6 max-w-xl">
+                  Paste any tracking number. Our AI (Perplexity Sonar Pro + OpenAI backup) finds real-time status, location, and delivery ETA across 800+ carriers.
+                </p>
 
-        // Determine icon and color based on status
-        let statusIcon = "check-circle";
-        let statusColor = "bg-green-400";
-        if (data.status.includes("Connection") || data.status.includes("Failed") || data.status.includes("Error")) {
-            statusIcon = "alert-triangle";
-            statusColor = "bg-red-400";
-        } else if (data.status.includes("Transit")) {
-            statusIcon = "truck";
-            statusColor = "bg-yellow-400";
+                <div class="bg-slate-900/70 border border-slate-700 rounded-2xl p-5 shadow-2xl">
+                  <form id="trackForm" class="space-y-3">
+                    <input
+                      id="trackingInput"
+                      type="text"
+                      placeholder="e.g. 1Z999AA10123456784"
+                      class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-base text-slate-50 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                      ${this.loading ? 'disabled' : ''}
+                    />
+                    <div class="flex flex-col sm:flex-row gap-3">
+                      <button
+                        type="submit"
+                        class="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-500 text-slate-900 font-semibold flex items-center justify-center gap-2 hover:from-sky-400 hover:to-indigo-400 disabled:opacity-60"
+                        ${this.loading ? 'disabled' : ''}
+                      >
+                        ${this.loading ? '🔄 Tracking…' : '🚀 Track Now'}
+                      </button>
+                      <button type="button" onclick="document.getElementById('smsModal').classList.add('active')" class="flex-1 px-6 py-3 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700">
+                        📱 SMS Alerts
+                      </button>
+                      <button type="button" onclick="document.getElementById('emailModal').classList.add('active')" class="flex-1 px-6 py-3 rounded-xl bg-sky-600 text-white font-semibold hover:bg-sky-700">
+                        📧 Email Alerts
+                      </button>
+                    </div>
+                  </form>
+
+                  ${this.error ? `
+                    <div class="mt-4 p-3 rounded-xl bg-red-900/40 border border-red-700 text-xs text-red-100">
+                      ❌ ${this.error}
+                    </div>
+                  ` : ''}
+
+                  ${this.result ? `
+                    <div class="mt-4 p-4 rounded-2xl border border-slate-700 bg-slate-900/80">
+                      <div class="flex justify-between mb-3 pb-3 border-b border-slate-800">
+                        <div>
+                          <div class="font-semibold text-slate-100">✅ Tracking Found</div>
+                          <div class="text-xs text-slate-400"># ${this.result.trackingNumber}</div>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${this.result.source === 'perplexity' ? 'bg-sky-500/20 text-sky-300' : 'bg-indigo-500/20 text-indigo-200'}">
+                          ${this.result.source === 'perplexity' ? '🤖 Perplexity' : '🔌 OpenAI'}
+                        </span>
+                      </div>
+                      <div class="text-xs leading-relaxed text-slate-100 whitespace-pre-wrap">
+                        ${this.result.data}
+                      </div>
+                      <div class="mt-3 pt-3 border-t border-slate-800 text-xs text-slate-400">
+                        Updated: ${new Date(this.result.timestamp).toLocaleString()}
+                      </div>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+
+              <aside class="space-y-4 mt-6 lg:mt-0">
+                <div class="bg-slate-900/70 border border-slate-700 rounded-2xl p-4">
+                  <h2 class="text-sm font-semibold text-slate-100 mb-2">Why choose us</h2>
+                  <ul class="text-xs text-slate-300 space-y-1 list-disc list-inside">
+                    <li>AI reads carrier pages live</li>
+                    <li>Auto-detects courier format</li>
+                    <li>Explains delays in plain language</li>
+                    <li>Realistic delivery predictions</li>
+                  </ul>
+                </div>
+
+                <div class="bg-gradient-to-br from-emerald-500 to-lime-400 rounded-2xl p-4 text-slate-900">
+                  <h3 class="text-sm font-bold mb-2">💳 Premium Credit Card</h3>
+                  <a href="${ENV.YENDO_CARD_LINK}" target="_blank" rel="noopener noreferrer" class="block w-full text-center px-4 py-2.5 rounded-xl bg-slate-900 text-emerald-300 text-xs font-semibold hover:bg-slate-800">
+                    View offer →
+                  </a>
+                </div>
+
+                <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-4 text-slate-50">
+                  <h3 class="text-sm font-bold mb-2">🎁 Daily Sweepstakes</h3>
+                  <a href="${ENV.SWEEPSTAKES_LINK}" target="_blank" rel="noopener noreferrer" class="block w-full text-center px-4 py-2.5 rounded-xl bg-white/10 text-xs font-semibold hover:bg-white/20">
+                    Enter now →
+                  </a>
+                </div>
+              </aside>
+            </section>
+          </main>
+
+          <footer class="border-t border-slate-800 bg-slate-950 py-6">
+            <div class="max-w-6xl mx-auto px-4 text-xs text-slate-400 text-center">
+              <p>© 2025 LiveTrackings.com – AI-powered package tracking assistant.</p>
+            </div>
+          </footer>
+        `;
+      }
+
+      attachEvents() {
+        const form = document.getElementById('trackForm');
+        if (form) form.addEventListener('submit', (e) => this.handleTrack(e));
+
+        const smsForm = document.getElementById('smsForm');
+        if (smsForm) smsForm.addEventListener('submit', (e) => this.handleSmsSignup(e));
+
+        const emailForm = document.getElementById('emailForm');
+        if (emailForm) emailForm.addEventListener('submit', (e) => this.handleEmailSignup(e));
+      }
+
+      async handleTrack(e) {
+        e.preventDefault();
+        const input = document.getElementById('trackingInput');
+        this.trackingNumber = (input.value || '').trim();
+
+        if (!this.trackingNumber) {
+          this.error = 'Please paste a valid tracking number.';
+          this.render();
+          this.attachEvents();
+          return;
         }
 
-        return (
-            <section className="py-12 px-4 bg-white animate-slide-up">
-              <div className="max-w-5xl mx-auto">
-                <div className="bg-white border border-gray-200 rounded-3xl shadow-2xl overflow-hidden">
-                  
-                  {/* Status Header */}
-                  <div className="bg-slate-900 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
-                    <div>
-                      <p className="text-blue-400 font-bold text-sm uppercase tracking-widest mb-1">Tracking ID</p>
-                      <h2 className="text-3xl font-mono font-bold tracking-wider">{number}</h2>
-                    </div>
-                    <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-lg backdrop-blur-sm border border-white/10">
-                      <i data-lucide={statusIcon} className={`w-4 h-4 text-white ${statusColor === 'bg-green-400' ? 'animate-pulse' : ''}`}></i>
-                      <span className="font-bold tracking-wide">{data.status}</span>
-                    </div>
-                  </div>
+        this.loading = true;
+        this.error = null;
+        this.result = null;
+        this.render();
+        this.attachEvents();
 
-                  <div className="p-6 md:p-10 grid md:grid-cols-3 gap-10">
-                    
-                    {/* Main Prediction (USP) */}
-                    <div className="md:col-span-2 space-y-6">
-                      <div className="flex items-start gap-4">
-                        <div className="bg-blue-100 p-3 rounded-xl">
-                          <i data-lucide="brain-circuit" className="w-8 h-8 text-blue-600"></i>
-                        </div>
-                        <div>
-                          <h3 className="text-xl font-bold text-gray-900">AI Delivery Prediction</h3>
-                          <p className="text-gray-600 mt-2 leading-relaxed">{data.prediction}</p>
-                        </div>
-                      </div>
+        try {
+          const response = await fetch('/api/track', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ trackingNumber: this.trackingNumber })
+          });
 
-                      <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                          <p className="text-xs text-gray-500 font-semibold uppercase">Carrier</p>
-                          <p className="text-lg font-bold text-gray-900">{data.carrier}</p>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                          <p className="text-xs text-gray-500 font-semibold uppercase">Location</p>
-                          <p className="text-lg font-bold text-gray-900 truncate">{data.location}</p>
-                        </div>
-                      </div>
-                    </div>
+          const data = await response.json();
 
-                    {/* Confidence Sidebar */}
-                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col justify-center">
-                       <div className="text-center mb-4">
-                          <div className={`text-5xl font-black mb-1 ${data.confidence >= 80 ? 'text-green-600' : data.confidence > 50 ? 'text-yellow-600' : 'text-red-600'}`}>{data.confidence}%</div>
-                          <p className="text-sm font-bold text-gray-500 uppercase">Confidence</p>
-                       </div>
-                       <div className="space-y-3 text-sm">
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-gray-500">Weather Risk</span>
-                            <span className="font-bold text-gray-800">{data.weatherRisk}</span>
-                          </div>
-                          <div className="flex justify-between py-2 border-b border-gray-200">
-                            <span className="text-gray-500">Engine</span>
-                            <span className="font-bold text-blue-600 truncate max-w-[120px]">{data.source}</span>
-                          </div>
-                       </div>
-                    </div>
+          if (data.success) {
+            this.result = data;
+            if (this.userPhone) this.sendSmsAlert(data);
+            if (this.userEmail) this.sendEmailAlert(data);
+          } else {
+            this.error = data.error || 'Tracking failed';
+          }
+        } catch (err) {
+          this.error = 'Network error. Check your connection.';
+        }
 
-                  </div>
-                </div>
-              </div>
-            </section>
-        );
-      };
+        this.loading = false;
+        this.render();
+        this.attachEvents();
+      }
 
-      const BlogSection = () => {
-        useEffect(initializeIcons, []);
-        return (
-            <section id="blog" className="py-24 bg-gray-50 px-4">
-              <div className="max-w-6xl mx-auto">
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Tracking Intelligence</h2>
-                  <p className="text-lg text-gray-600">Why AI tracking beats traditional database lookups.</p>
-                </div>
-                
-                <div className="grid md:grid-cols-3 gap-8">
-                  <article className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition duration-300 group">
-                    <div className="h-48 bg-blue-600 relative overflow-hidden flex items-center justify-center">
-                       <i data-lucide="zap" className="text-white w-16 h-16 opacity-80"></i>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition">Real-Time vs. Cached</h3>
-                      <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                        Traditional trackers show you yesterday's data. LiveTrackings uses AI to scan live logistics networks for real-time status.
-                      </p>
-                      <a href="#" className="text-blue-600 font-bold text-sm inline-flex items-center">Read Analysis <i data-lucide="arrow-right" className="w-4 h-4 ml-1"></i></a>
-                    </div>
-                  </article>
-                  <article className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition duration-300 group">
-                     <div className="h-48 bg-indigo-600 relative overflow-hidden flex items-center justify-center">
-                       <i data-lucide="shield-check" className="text-white w-16 h-16 opacity-80"></i>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition">The 95% Confidence Score</h3>
-                      <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                        How our AI calculates delivery probability by analyzing weather patterns, port congestion, and carrier delays.
-                      </p>
-                      <a href="#" className="text-indigo-600 font-bold text-sm inline-flex items-center">Read Guide <i data-lucide="arrow-right" className="w-4 h-4 ml-1"></i></a>
-                    </div>
-                  </article>
-                  <article className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-xl transition duration-300 group">
-                    <div className="h-48 bg-slate-800 relative overflow-hidden flex items-center justify-center">
-                       <i data-lucide="lock" className="text-white w-16 h-16 opacity-80"></i>
-                    </div>
-                    <div className="p-6">
-                      <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition">Privacy First</h3>
-                      <p className="text-gray-500 text-sm leading-relaxed mb-4">
-                        We don't store your tracking data. Learn how our stateless AI engine protects your shipment information.
-                      </p>
-                      <a href="#" className="text-slate-700 font-bold text-sm inline-flex items-center">Our Manifesto <i data-lucide="arrow-right" className="w-4 h-4 ml-1"></i></a>
-                    </div>
-                  </article>
-                </div>
-              </div>
-            </section>
-        );
-      };
+      sendSmsAlert(result) {
+        console.log('SMS alert sent to', this.userPhone);
+      }
 
-      const Footer = () => (
-        <footer className="bg-slate-900 text-white py-12 border-t border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <span className="text-2xl">📦</span>
-                <span className="font-black text-xl tracking-tight">LiveTrackings</span>
-              </div>
-            <p className="text-slate-500 text-sm">
-              © 2025 LiveTrackings.com. The First AI Courier Tracker. All rights reserved.
-            </p>
-          </div>
-        </footer>
-      );
+      sendEmailAlert(result) {
+        console.log('Email alert sent to', this.userEmail);
+      }
 
-      // --- MAIN APP ---
-      const App = () => {
-        const [trackingData, setTrackingData] = useState(null);
+      handleSmsSignup(e) {
+        e.preventDefault();
+        const phone = document.getElementById('smsPhone').value.trim();
+        if (!phone) return;
+        this.userPhone = phone;
+        localStorage.setItem('lt_phone', phone);
+        alert('✅ SMS alerts enabled for ' + phone);
+        document.getElementById('smsModal').classList.remove('active');
+      }
 
-        useEffect(initializeIcons, []);
+      handleEmailSignup(e) {
+        e.preventDefault();
+        const email = document.getElementById('emailAddress').value.trim();
+        if (!email) return;
+        this.userEmail = email;
+        localStorage.setItem('lt_email', email);
+        alert('✅ Email alerts enabled for ' + email);
+        document.getElementById('emailModal').classList.remove('active');
+      }
+    }
 
-        return (
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main>
-              <Hero onTrack={async (num) => {
-                const data = await fetchPrediction(num);
-                setTrackingData({ ...data, number: num });
-                // Scroll to results section smoothly
-                setTimeout(() => {
-                    const el = document.getElementById('results-section');
-                    if(el) el.scrollIntoView({ behavior: 'smooth' });
-                }, 200);
-              }} />
-              
-              {trackingData && (
-                  <div id="results-section">
-                    <ResultDashboard data={trackingData} number={trackingData.number} />
-                  </div>
-              )}
-
-              <BlogSection />
-            </main>
-            <Footer />
-          </div>
-        );
-      };
-
-      const root = ReactDOM.createRoot(document.getElementById('root'));
-      root.render(<App />);
-    </script>
-  </body>
+    new LiveTrackingsApp();
+  </script>
+</body>
 </html>
