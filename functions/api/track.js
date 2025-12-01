@@ -26,6 +26,7 @@ export async function onRequest(context) {
 
       const PERPLEXITY_KEY = context.env.PERPLEXITY_API_KEY;
       const OPENAI_KEY = context.env.OPENAI_API_KEY;
+      const TRACKINGMORE_KEY = context.env.TRACKINGMORE_API_KEY;
 
       // PRIMARY: Perplexity Sonar Pro
       if (PERPLEXITY_KEY) {
@@ -121,6 +122,26 @@ export async function onRequest(context) {
         }
       }
 
+
+        // EMERGENCY SHIELD: TrackingMore (validation only)
+        if (TRACKINGMORE_KEY) {
+              try {
+                      const response = await fetch('https://api.trackingmore.com/v4/trackings/get', {
+                                method: 'POST',
+                                headers: {
+                                            'Trackingmore-Api-Key': TRACKINGMORE_KEY,
+                                            'Content-Type': 'application/json'
+                                                      },
+                                body: JSON.stringify({ tracking_number: trackingNumber })
+                                        });
+                      if (response.ok) {
+                                const data = await response.json();
+                                return new Response(JSON.stringify({ success: true, trackingNumber, source: 'trackingmore', data }), { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+                              }
+                    } catch (err) {
+                      console.error('TrackingMore error:', err);
+                    }
+            }
       return new Response(
         JSON.stringify({ success: false, error: 'Both APIs unavailable' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
